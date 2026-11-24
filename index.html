@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ドラゴンタウン</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff6e3;--ink:#25304a;--card:#fff;--line:#ecd9b0;--soft:#f6ead0;--sky1:#9fdcff;--sky2:#e8f7ff;--grass:#7ccf6b;--grass2:#6bc05b;--road:#c9c3b8;--org:#ff7a2f;--pur:#6b4de6;--gold:#ffc933;--red:#e5483f;--grn:#2ea05a;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171a2b;--ink:#f3efe6;--card:#232842;--line:#3a4066;--soft:#2c3250;--sky1:#2a3b7a;--sky2:#5a4a8f;--grass:#3f8f52;--grass2:#388249;--road:#6d6a7a}}
+:root[data-theme="dark"]{--bg:#171a2b;--ink:#f3efe6;--card:#232842;--line:#3a4066;--soft:#2c3250;--sky1:#2a3b7a;--sky2:#5a4a8f;--grass:#3f8f52;--grass2:#388249;--road:#6d6a7a}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;font-weight:500}
+.app{margin-left:calc(92px + env(safe-area-inset-left,0px));padding:env(safe-area-inset-top,0px) 16px 20px 8px}
+.hd{display:flex;align-items:center;justify-content:space-between;padding:12px 2px;gap:8px}
+.hd h1{margin:0;font-size:22px;font-weight:900}.hd .m{display:flex;gap:6px}
+.pill{background:var(--card);border:2px solid var(--line);border-radius:99px;padding:3px 12px;font-weight:700;font-size:15px}
+.scr{display:none}.scr.on{display:block}
+.cols{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;align-items:start}
+h2{font-size:17px;font-weight:900;margin:14px 0 8px}h2:first-child{margin-top:0}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:12px}
+button{font:inherit;cursor:pointer;border:0;border-radius:14px;font-weight:900;color:#fff;background:var(--org);padding:11px 14px}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.nav{position:fixed;left:0;top:0;bottom:0;width:calc(92px + env(safe-area-inset-left,0px));background:var(--card);border-right:2px solid var(--line);display:flex;flex-direction:column;gap:6px;padding:calc(12px + env(safe-area-inset-top,0px)) 8px 12px calc(8px + env(safe-area-inset-left,0px))}
+.nav button{background:none;color:var(--ink);font-size:12px;padding:10px 0;opacity:.6}
+.nav button b{display:block;font-size:24px;line-height:1.2}.nav button.on{opacity:1;background:var(--soft)}
+/* dragons */
+.dg{display:block;width:100%;height:auto;aspect-ratio:200/160;overflow:visible}
+.st1{--o2:0;--o3:0;--ws:.55;transform:scale(.72);transform-origin:50% 88%}
+.st2{--o2:1;--o3:0;--ws:1}
+.st3{--o2:1;--o3:1;--ws:1.2;filter:drop-shadow(0 0 7px var(--h))}
+.glow2{filter:drop-shadow(0 0 10px #ff4b3a)}
+.glow3{filter:drop-shadow(0 0 10px #b14bff) drop-shadow(0 0 22px #ff2a2a)}
+.lock{filter:brightness(0) opacity(.35)}
+.flash{animation:fl .9s}@keyframes fl{0%{filter:brightness(9)}100%{filter:brightness(1)}}
+.pick{border:3px solid var(--line);border-radius:16px;background:var(--card);padding:8px 4px;text-align:center;font-weight:700;font-size:13px}
+.pick.sel{border-color:var(--org);box-shadow:0 0 0 3px #ff7a2f44}.pick small{display:block;opacity:.7;font-weight:500}
+.picks{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.picks .dg{width:150px;margin:0 auto}
+.grades{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.grades button{background:var(--soft);color:var(--ink);padding:12px 0;font-size:16px}.grades .sel{background:var(--pur);color:#fff}
+/* town */
+.scene{height:max(480px,calc(100vh - 84px));border-radius:22px;overflow:hidden;position:relative;background:linear-gradient(var(--sky1),var(--sky2) 70%)}
+.world{position:absolute;left:50%;top:calc(54% - 200px);width:400px;height:400px;margin-left:-200px;transform-style:preserve-3d;transform:scale(var(--k,1)) rotateX(58deg) rotateZ(45deg)}
+.t{position:absolute;width:40px;height:40px;background:var(--grass)}.t.a{background:var(--grass2)}.t.r{background:var(--road)}
+.bx{position:absolute;transform-style:preserve-3d;width:var(--s);height:var(--s)}
+.bx i{position:absolute;display:block;background:var(--c)}
+.bx .tp{inset:0;transform:translateZ(var(--h))}
+.bx .fr{left:0;top:100%;width:100%;height:var(--h);transform-origin:0 0;transform:rotateX(90deg);filter:brightness(.82)}
+.bx .rt{left:100%;top:0;width:var(--h);height:100%;transform-origin:0 0;transform:rotateY(-90deg);filter:brightness(.66)}
+.bx[data-id]{cursor:pointer}
+.bx.bd .fr::after{content:"";position:absolute;inset:18% 20% 30%;background:repeating-linear-gradient(90deg,#fff8 0 5px,transparent 5px 10px);opacity:.6}
+.bx[data-id] .fr::before,.bx[data-id] .rt::before{content:"";position:absolute;left:38%;top:0;width:24%;height:42%;background:#5a3a22;z-index:1}
+.bx.sel i{filter:brightness(1.3) saturate(1.2)}
+.rf{position:absolute;inset:0;transform-style:preserve-3d}
+.gb{position:absolute;left:0;top:100%;transform-origin:0 0;transform:rotateX(90deg);clip-path:polygon(0 0,100% 0,50% 100%);background:var(--c);filter:brightness(.82)}
+.sl{position:absolute;left:50%;top:0;height:100%;transform-origin:0 0;background:var(--r);filter:brightness(.7)}
+.nm{position:absolute;left:50%;top:50%;transform-origin:0 100%;white-space:nowrap;font-size:12px;font-weight:900;background:#25304a;color:#fff;padding:2px 8px;border-radius:99px;pointer-events:none}.nm:empty{display:none}
+.pp{position:absolute;width:0;height:0;transform-style:preserve-3d;transition:opacity .25s}
+.cloud{position:absolute;left:-70px;font-size:38px;opacity:.92;animation:drift linear infinite}@keyframes drift{to{transform:translateX(900px)}}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}.acts button:nth-child(2){background:var(--grn)}.acts small{display:block;font-weight:500;opacity:.9}
+.nmc{margin-top:12px}.nmc input{width:100%;font:inherit;font-size:18px;padding:10px;border-radius:12px;border:3px solid var(--line);background:var(--bg);color:var(--ink);margin:8px 0}
+.nmc button{width:100%;background:var(--pur)}
+/* stages */
+.path{display:flex;justify-content:space-between;align-items:center;position:relative;padding:6px 0 22px}
+.path::before{content:"";position:absolute;left:8%;right:8%;top:34px;height:6px;background:repeating-linear-gradient(90deg,var(--line) 0 10px,transparent 10px 18px)}
+.node{width:62px;height:62px;border-radius:50%;background:var(--card);border:4px solid var(--line);display:grid;place-items:center;font-size:26px;position:relative}
+.node em{position:absolute;bottom:-20px;font-size:12px;font-style:normal;font-weight:700;white-space:nowrap}
+.node.done{border-color:var(--grn);background:#dff6e6}.node.now{border-color:var(--org);box-shadow:0 0 0 5px #ff7a2f44;background:#fff0dc}.node.lk{opacity:.5}
+.boss{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#2b1f4d,#6a2330);color:#fff;border-radius:20px;padding:12px;margin-top:14px}
+.boss .dg{width:200px;flex:none}.boss b{font-size:19px}
+.tiers{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;text-align:center;font-size:13px;font-weight:700}
+.tiers div{background:#25203a;border-radius:14px;padding:10px 2px 8px;color:#fff;overflow:hidden}.tiers .dg{width:120px;margin:0 auto}
+body{transition:background .6s}
+body.battle{--ink:#f3efe6;--card:#2a2236;--line:#4a3a5a;--soft:#3a2d4a;background:linear-gradient(160deg,#5a3a22 0%,#1a1018 50%,#0a0710 62%,#4b1f7a 100%) fixed}
+.mapsvg{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block;cursor:grab;background:linear-gradient(var(--sea1),var(--sea2));--sea1:#a9d8f2;--sea2:#cfeaf8;--land:#f3eed9;--landline:#a79b78;--sealbl:#6b9db8;--halo:#fff;--lblc:#1c2540}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mapsvg{--sea1:#14203d;--sea2:#1b2a50;--land:#34405a;--landline:#7d8bab;--sealbl:#5a74a8;--halo:#0d1428;--lblc:#eef1fb}}
+.slb,.tlb{fill:var(--lblc);paint-order:stroke;stroke:var(--halo);stroke-width:3.6px;stroke-linejoin:round;pointer-events:none;font-family:inherit}
+.tlb{font-weight:900}
+.zb{position:absolute;left:12px;top:12px;display:grid;gap:6px;z-index:6}.zb button{width:46px;height:46px;font-size:22px;padding:0;background:var(--card);color:var(--ink);border:2px solid var(--line)}
+.scene.bt .mapsvg,.scene.bt .zb{opacity:.12;pointer-events:none}
+.bmsg{font-size:12px;font-weight:700;margin:0 0 6px;min-height:16px}.hin{width:100%;font:inherit;font-size:16px;padding:8px;border-radius:10px;border:3px solid var(--line);background:var(--bg);color:var(--ink);margin:6px 0}
+.chip{display:inline-block;border-radius:99px;padding:1px 9px;font-size:12px;font-weight:700;margin:2px 2px 0 0}
+.ti{font-size:13px;margin-top:4px;line-height:1.5}
+.lg{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:11px;font-weight:700;margin-top:8px}.lg i{display:inline-block;width:14px;height:5px;border-radius:3px;margin-right:3px;vertical-align:middle}
+.tw>div:not(.scene) .card{background:transparent;border:0}
+.tw{position:relative}
+.tw>div:not(.scene){position:absolute;right:12px;bottom:12px;max-height:calc(100% - 24px);overflow:auto;width:280px;z-index:5;background:color-mix(in srgb,var(--card) 90%,transparent);border-radius:18px;padding:10px}
+body.battle .tw>div:not(.scene){display:none}
+.scene.bt{background:linear-gradient(#2a1a10,#1a1030 70%,#4b1f7a)}
+.bf{position:absolute;inset:0;z-index:20;display:none;background:radial-gradient(ellipse at 50% 45%,#0005,#000b)}
+.bf.on{display:block}
+.bz{position:absolute;width:clamp(170px,24vw,320px)}
+.bz.f{right:3%;top:3%}.bz.m{left:3%;top:26%}.bz.m .dg{scale:-1 1}
+.bz.f.dead{opacity:0;transition:opacity 1s .5s}
+.flamez{position:absolute;left:24%;top:30%;width:34%;opacity:0;transform-origin:0 50%}.flamez.go{animation:fm .6s ease-out}
+.boomz{position:absolute;right:6%;top:2%;width:clamp(180px,26vw,340px);aspect-ratio:1;border-radius:50%;opacity:0;background:radial-gradient(#fff 0 12%,#ffe14a 25%,#ff7a2f 50%,#e5483f 65%,transparent 72%)}
+.boomz.go{animation:bm .6s .25s ease-out}.boomz.big{animation:bmb 1s .25s ease-out}
+@keyframes bmb{0%{opacity:1;transform:scale(.2)}50%{opacity:1;transform:scale(2.2)}100%{opacity:0;transform:scale(3.4)}}
+.bz.f.hit{animation:sk .5s .25s}.bz.m.hit{animation:sk .4s}.scene.shake{animation:sk .7s .25s}
+.qp{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);width:min(700px,94%)}
+.qp .ch{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.res{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);text-align:center;min-width:300px;z-index:30;font-size:18px}
+.res button{margin:6px 4px 0}
+.qp[hidden],.res[hidden]{display:none}
+/* battle */
+.arena{position:relative;height:min(420px,62vh);border-radius:22px;overflow:hidden;background:linear-gradient(#7cc4ff,#d9f0ff 55%,#7ccf6b 55%)}
+.foe{position:absolute;right:6px;top:8px;width:200px}.me{position:absolute;left:6px;bottom:6px;width:200px}.me .dg{scale:-1 1}
+.hp{height:10px;border-radius:6px;background:#0003;overflow:hidden;margin-bottom:4px}.hp i{display:block;height:100%;background:var(--red)}.me-hp i{background:var(--grn)}
+.lab{font-size:13px;font-weight:900;color:#25304a;margin:0 0 2px}
+.flame{position:absolute;left:150px;bottom:130px;width:220px;opacity:0;transform-origin:0 50%}.flame.go{animation:fm .6s ease-out}
+@keyframes fm{0%{opacity:0;transform:scaleX(.1)}40%{opacity:1;transform:scaleX(1)}100%{opacity:0;transform:scaleX(1.1)}}
+.boom{position:absolute;right:40px;top:40px;width:140px;height:140px;border-radius:50%;opacity:0;background:radial-gradient(#fff 0 12%,#ffe14a 25%,#ff7a2f 50%,#e5483f 65%,transparent 72%)}
+.boom.go{animation:bm .6s .25s ease-out}.foe.hit{animation:sk .5s .25s}
+@keyframes bm{0%{opacity:1;transform:scale(.2)}60%{opacity:1;transform:scale(1.5)}100%{opacity:0;transform:scale(2)}}
+@keyframes sk{20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}}
+.tabs{display:flex;gap:6px;margin-bottom:8px}.tabs button{flex:1;background:var(--soft);color:var(--ink);padding:10px 0;font-size:15px}.tabs .on{background:var(--pur);color:#fff}
+.q{font-size:22px;font-weight:900;margin:2px 0 10px;line-height:1.5}.q small{display:block;font-size:15px;font-weight:500;background:var(--soft);border-radius:10px;padding:8px;margin-bottom:6px}
+.ch{display:grid;gap:8px}.ch button{background:var(--card);color:var(--ink);border:3px solid var(--line);text-align:left;font-size:18px}
+.atk{width:100%;margin-top:10px;background:var(--red);font-size:19px}
+/* dragons */
+.herd{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.herd .dg{width:110px;margin:0 auto}
+.bar{height:12px;border-radius:7px;background:var(--soft);overflow:hidden}.bar i{display:block;height:100%}
+.row{display:grid;grid-template-columns:78px 1fr 40px;gap:8px;align-items:center;font-size:14px;font-weight:700;margin:6px 0}
+.top2{display:flex;gap:10px;align-items:center}.top2 .dg{width:200px;flex:none}.top2 button{background:var(--pur);font-size:14px;padding:8px 12px;margin-top:6px}
+.evo{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:2px;align-items:center;text-align:center;font-size:12px;font-weight:700;margin-top:10px}
+.evo .ev{border:2px solid var(--line);border-radius:12px;padding:4px 0}.evo .ev.now{border-color:var(--org)}.evo .dg{width:84%;margin:0 auto}.qm{aspect-ratio:200/160;display:grid;place-items:center;font-size:44px;font-weight:900;opacity:.35}.evo small{display:block;font-weight:500;opacity:.7}
+.feed{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.feed div{background:var(--soft);border-radius:14px;text-align:center;padding:8px 2px;font-size:13px;font-weight:700}
+.feed span{font-size:30px;display:block}.feed button{margin-top:4px;padding:5px 0;width:90%;font-size:13px;background:var(--gold);color:#25304a}
+.zk{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}.zk .dg{width:110px;margin:0 auto}
+@media (max-width:820px){.nav{top:auto;width:auto;right:0;flex-direction:row;border-right:0;border-top:2px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}.nav button{flex:1}.app{margin-left:0;padding:env(safe-area-inset-top,0px) 12px 96px}.cols{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+.bz .lab{position:relative;z-index:3;color:#fff;text-shadow:0 1px 3px #000}.mi{display:flex;align-items:center;gap:10px;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px;margin-bottom:8px;font-weight:700;font-size:14px}.mi .mt{flex:1}.mi .bar{margin:4px 0}.mi button{padding:8px 12px}.mi button:disabled{opacity:.35}
+.node.cur{outline:4px solid #ff7a2f88;outline-offset:3px}.node{cursor:pointer}#wp:disabled,#wn:disabled{opacity:.3}#wp,#wn{padding:8px 14px}.herd .pick{cursor:pointer}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<radialGradient id="g3" cx=".3" cy=".25" r=".9"><stop offset="0" stop-color="#fff" stop-opacity=".4"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></radialGradient>
+<pattern id="sc" width="7" height="6" patternUnits="userSpaceOnUse"><path d="M0 6Q3.5 0 7 6" fill="none" stroke="#000" stroke-opacity=".2" stroke-width="1"/></pattern>
+<pattern id="ft" width="8" height="7" patternUnits="userSpaceOnUse"><path d="M0 0Q4 7 8 0" fill="none" stroke="#000" stroke-opacity=".2" stroke-width="1"/></pattern>
+<symbol id="fl" viewBox="0 0 160 60"><path d="M0 30Q40 0 100 8Q140 14 160 30Q140 46 100 52Q40 60 0 30Z" fill="#ff6a1a"/><path d="M0 30Q40 12 100 16Q130 20 140 30Q130 40 100 44Q40 48 0 30Z" fill="#ffb21e"/><path d="M0 30Q40 22 90 25Q110 28 112 30Q110 33 90 36Q40 38 0 30Z" fill="#fff3b0"/></symbol>
+</defs><g id="syms"></g></svg>
+
+<nav class="nav" id="nav">
+ <button data-s="0"><b>🥚</b>はじめ</button><button data-s="1" class="on"><b>🗾</b>ちず</button><button data-s="2"><b>🗺️</b>ステージ</button><button data-s="3"><b>⚔️</b>バトル</button><button data-s="4"><b>🐲</b>ドラゴン</button>
+</nav>
+
+<div class="app">
+ <div class="hd"><h1>ドラゴンタウン</h1><div class="m"><span class="pill">⭐ <b id="stv">85</b></span><span class="pill">🪙 <b id="cnv">1,240</b></span></div></div>
+
+ <section class="scr" id="s0"><div class="cols">
+  <div><h2>がくねんをえらぼう</h2>
+   <div class="grades card" style="padding:8px"><button data-g="1">1年</button><button data-g="2">2年</button><button data-g="3">3年</button><button data-g="4">4年</button><button data-g="5">5年</button><button data-g="6">6年</button></div>
+   <p style="font-size:14px;opacity:.75;margin:12px 2px">レベルが上がると進化して、すがたが大きく強くなるよ。</p>
+   <button id="go0" style="width:100%;font-size:19px;padding:16px">ぼうけんスタート</button><button id="rst" style="width:100%;margin-top:8px;background:transparent;color:inherit;opacity:.6;font-size:13px;font-weight:500">さいしょから やりなおす</button></div>
+  <div><h2>さいしょのドラゴンをえらぼう</h2>
+   <div class="picks" style="grid-template-columns:1fr">
+    <div class="pick sel" data-pick="ruri"><svg class="dg st1" data-sp="ruri"></svg>ルリオ<small>みず・かぜ（はね あり）</small></div>
+   </div>
+   <div class="picks" style="margin-top:10px;grid-template-columns:1fr 1fr">
+    <div class="pick" data-pick="hapa"><svg class="dg st1" data-sp="hapa"></svg>ハッパ<small>くさ（はね なし）</small></div>
+    <div class="pick" data-pick="raiko"><svg class="dg st1" data-sp="raiko"></svg>ライコ<small>かみなり</small></div>
+   </div></div>
+ </div></section>
+
+ <section class="scr on" id="s1"><div class="tw">
+  <div class="scene" id="scene"><svg id="mapsvg" class="mapsvg"><g id="mv"></g><g id="scr"></g></svg>
+   <div class="zb"><button id="zin" aria-label="ひろげる">＋</button><button id="zout" aria-label="ちぢめる">－</button><button id="zfit" aria-label="ぜんたい">⌂</button></div>
+   </div>
+  <div class="rp">
+   <b>🚄 はしる れっしゃ <span id="tn">3</span>/<span id="tt">33</span>本</b>
+   <button id="gob" style="width:100%;margin:8px 0;background:var(--red);font-size:18px">⚔️ バトルにいく</button>
+   <div class="acts" style="margin-bottom:6px"><button id="bh">🏠 いえ<small>⭐ 20</small></button><button id="bb" style="background:#e0a100">🏢 ビル<small>⭐ 30</small></button><button id="bs" style="grid-column:1/-1;background:#1f9d55">🚉 えきを ふやす<small>⭐ 15</small></button></div>
+   <div class="bmsg" id="bmsg">たてものは ⭐で たてられるよ。</div>
+   <div class="card" id="ti" style="padding:8px"></div>
+   <div class="lg" id="lg"></div>
+  </div>
+ </div></section>
+
+ <section class="scr" id="s2"><div class="cols">
+  <div><div style="display:flex;gap:8px;align-items:center"><button id="wp">◀</button><h2 id="sh2" style="flex:1;margin:0"></h2><button id="wn">▶</button></div>
+   <div class="path" id="pth" style="margin-top:14px"></div>
+   <div class="boss" id="stc"></div></div>
+  <div><h2>きょうのミッション</h2><div id="mis"></div><p style="font-size:13px;opacity:.7">ミッションは まいにち リセットされるよ。</p></div>
+ </div></section>
+
+ 
+ <section class="scr" id="s3">
+  <div class="scene bt" id="bscene">
+   <div class="bf" id="bf">
+    <div class="bz f" id="bzf"><p class="lab" id="fn"></p><div class="hp"><i id="fhp" style="width:100%"></i></div><svg class="dg st2" id="fsv"></svg></div>
+    <svg class="flamez" id="flm" viewBox="0 0 160 60"><use href="#fl"/></svg><div class="boomz" id="bmz"></div>
+    <div class="bz m" id="bzm"><p class="lab" id="mn"></p><div class="hp me-hp"><i id="mhp" style="width:100%"></i></div><svg class="dg st2" id="msv"></svg></div>
+    <div class="card qp" id="qp"><div class="q" id="qb"></div><div class="ch" id="cb"></div></div>
+    <div class="card res" id="res" hidden></div>
+   </div>
+   <div class="card res" id="bstart"><b id="bst" style="font-size:24px"></b><br><svg class="dg" id="bsd" style="width:150px;margin:4px auto"></svg><p id="bsi"></p><button class="big" id="bgo" style="background:var(--red);font-size:20px;padding:14px 28px">バトルスタート</button><button id="bsel" style="background:var(--org)">ステージえらび</button></div>
+  </div>
+ </section>
+
+ <section class="scr" id="s4">
+  <div class="cols">
+   <div><h2>ドラゴンをそだてる</h2>
+    <div class="card">
+     <div class="top2"><svg class="dg st2" id="big" data-sp="ruri"></svg>
+      <div><b style="font-size:20px" id="nm">ルリドラ</b><br><span id="lvt">Lv12　しんか 2/3</span><br><small id="nx">Lv20で しんか！ あと8</small></div></div>
+     <div class="row">けいけんち<div class="bar"><i id="xpb" style="width:60%;background:var(--org)"></i></div><span id="xpt">60%</span></div>
+     <div class="row">ちから<div class="bar"><i id="pwb" style="width:55%;background:var(--red)"></i></div><span id="pwt">55</span></div>
+     <div class="row">たいりょく<div class="bar"><i id="hpb" style="width:70%;background:var(--grn)"></i></div><span id="hpt">70</span></div>
+     <div class="evo">
+      <div class="ev"><svg class="dg st1" data-sp="ruri"></svg>ルリオ<small>Lv1〜9</small></div><span>▶</span>
+      <div class="ev now"><svg class="dg st2" data-sp="ruri"></svg>ルリドラ<small>Lv10〜19</small></div><span>▶</span>
+      <div class="ev"><svg class="dg st3 lock" data-sp="ruri"></svg>？？？<small>Lv20〜</small></div>
+     </div>
+     <div class="feed">
+      <div><span>🍎</span>りんご<br>EXP +20<button data-f="10:20">🪙 10</button></div>
+      <div><span>🍖</span>おにく<br>EXP +80<button data-f="50:80">🪙 50</button></div>
+      <div><span>💎</span>ちからの実<br>EXP +300<button data-f="200:300">🪙 200</button></div>
+     </div></div></div>
+   <div><h2>ぼくのドラゴン</h2>
+    <div class="herd">
+     <div class="pick sel"><svg class="dg st2" data-sp="ruri"></svg>ルリドラ Lv12</div>
+     <div class="pick"><svg class="dg st1" data-sp="wani"></svg>ワニゴン Lv5</div>
+     <div class="pick"><svg class="dg st2 lock" data-sp="homura"></svg>？？？<small>ステージ12で出会える</small></div>
+    </div></div>
+  </div>
+  <h2 id="zh">ドラゴンずかん</h2>
+  <div id="zk"></div>
+ </section>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const KEY="dragon-town-save-v1";
+let G={coin:100,star:30,grade:3,starter:"ruri",names:{},tab:1,stage:1,sel:1,stars:{},dragons:[],act:0,mi:null,started:0,houses:[],stations:[]};
+try{Object.assign(G,JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){}
+if(!G.names)G.names={};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(G))}catch(e){}};
+let bOn=false;
+function show(n){G.tab=n;save();
+ document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",+x.dataset.s===n));
+ document.querySelectorAll(".scr").forEach(x=>x.classList.toggle("on",x.id==="s"+n));
+ document.body.classList.toggle("battle",n===3);if(n===1)requestAnimationFrame(fit)}
+document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>show(+b.dataset.s));
+function fit(){window.mapFit&&mapFit()}
+/* ===== dragon art kit v3 (16 mythic reptile / bird dragons, hand-built SVG) ===== */
+/* Self-contained: every helper is private to this IIFE; only SPC and SPD become globals.
+   All colours come from CSS vars (--c body, --d outline, --b belly, --w wing, --h accent/horn, --e eye),
+   shading uses white/black alpha so boss recolouring keeps working. Stage vars: --o2 --o3 --ws. */
+const {SPC,SPD}=(()=>{
+const D="var(--d)",C="var(--c)",B="var(--b)",W="var(--w)",H="var(--h)",E="var(--e,#ffd23a)",IV="#fff6df";
+const n1=v=>Math.round(v*10)/10,pt=p=>n1(p[0])+" "+n1(p[1]);
+let U=0;const uid=()=>"dzk"+(U++).toString(36);
+const DEFS=`<defs>
+<linearGradient id="dzC" x1=".1" y1="0" x2=".45" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".32"/><stop offset=".28" stop-color="#fff" stop-opacity=".04"/><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".26"/></linearGradient>
+<radialGradient id="dzR" cx=".36" cy=".3" r=".78" fx=".3" fy=".22"><stop offset="0" stop-color="#fff" stop-opacity=".42"/><stop offset=".32" stop-color="#fff" stop-opacity=".06"/><stop offset=".62" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></radialGradient>
+<linearGradient id="dzB" x1="0" y1="0" x2=".8" y2=".6"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".4" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".16"/></linearGradient>
+<linearGradient id="dzH" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset=".22" stop-color="#fff" stop-opacity=".22"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset=".78" stop-color="#000" stop-opacity=".14"/><stop offset="1" stop-color="#000" stop-opacity=".42"/></linearGradient>
+<linearGradient id="dzW" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".42"/><stop offset=".35" stop-color="#fff" stop-opacity=".08"/><stop offset=".7" stop-color="#000" stop-opacity=".06"/><stop offset="1" stop-color="#000" stop-opacity=".34"/></linearGradient>
+<linearGradient id="dzI" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".62"/><stop offset=".42" stop-color="#000" stop-opacity=".1"/><stop offset=".75" stop-color="#fff" stop-opacity=".18"/><stop offset="1" stop-color="#fff" stop-opacity=".65"/></linearGradient>
+<radialGradient id="dzS"><stop offset="0" stop-color="#000" stop-opacity=".36"/><stop offset=".6" stop-color="#000" stop-opacity=".16"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<radialGradient id="dzG"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset=".3" stop-color="#fff" stop-opacity=".6"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+<filter id="dzb" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.8"/></filter>
+<filter id="dzs" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.6"/></filter>
+</defs>`;
+/* ---------- geometry ---------- */
+/* smooth closed/open path through points (Catmull-Rom); a point [x,y,1] is a sharp corner */
+const SM=(a,cl=1,t=1)=>{const n=a.length,g=i=>cl?a[(i+n)%n]:a[Math.max(0,Math.min(n-1,i))];let d="M"+pt(a[0]);
+ for(let i=0;i<(cl?n:n-1);i++){const p0=g(i-1),p1=g(i),p2=g(i+1),p3=g(i+2),k1=p1[2]===1?0:t/6,k2=p2[2]===1?0:t/6;
+  d+="C"+pt([p1[0]+(p2[0]-p0[0])*k1,p1[1]+(p2[1]-p0[1])*k1])+" "+pt([p2[0]-(p3[0]-p1[0])*k2,p2[1]-(p3[1]-p1[1])*k2])+" "+pt(p2)}
+ return d+(cl?"Z":"")};
+/* tapering tube along a spine [[x,y,r],...] (r<.6 => pointed end) */
+const TUBE=a=>{const n=a.length,L=[],R=[];
+ for(let i=0;i<n;i++){const p=a[Math.max(0,i-1)],q=a[Math.min(n-1,i+1)];let dx=q[0]-p[0],dy=q[1]-p[1];const l=Math.hypot(dx,dy)||1;dx/=l;dy/=l;
+  const r=a[i][2],c=r<.6?1:0;L.push([a[i][0]-dy*r,a[i][1]+dx*r,c]);R.push([a[i][0]+dy*r,a[i][1]-dx*r,c])}
+ const cap=(i,j)=>{const r=a[i][2],dx=a[i][0]-a[j][0],dy=a[i][1]-a[j][1],l=Math.hypot(dx,dy)||1;return [a[i][0]+dx/l*r*.95,a[i][1]+dy/l*r*.95]};
+ let ps=L.slice();if(a[n-1][2]>=.6)ps.push(cap(n-1,n-2));const Rr=R.reverse();if(a[n-1][2]<.6)Rr.shift();ps=ps.concat(Rr);
+ if(a[0][2]>=.6)ps.push(cap(0,1));else ps.pop();return SM(ps)};
+/* spine sampler: offset points along a tube's side (s=+1 left/-1 right), u in 0..1 */
+const SIDE=(a,u,s,f=1)=>{const n=a.length-1,x=u*n,i=Math.min(n-1,Math.floor(x)),t=x-i,p=a[i],q=a[i+1];const dx=q[0]-p[0],dy=q[1]-p[1],l=Math.hypot(dx,dy)||1;
+ const r=(p[2]+(q[2]-p[2])*t)*f;return [p[0]+dx*t-dy/l*r*s,p[1]+dy*t+dx/l*r*s,Math.atan2(dy,dx)*57.3]};
+const EL=(x,y,a,b=a)=>`M${n1(x-a)} ${y}a${a} ${b} 0 1 0 ${n1(2*a)} 0a${a} ${b} 0 1 0 ${n1(-2*a)} 0Z`;
+/* ---------- painting ---------- */
+const BIG="M-120 -120H330V290H-120Z";
+/* cel-shaded shape: base fill, soft gradient, hard core-shadow + rim-light crescents, clipped extras, outline */
+const S=(d,f=C,o={})=>{const id=uid(),g=o.g===undefined?"dzC":o.g,k=o.s||1,w=o.w||2.4;
+ return `<path d="${d}" fill="${f}"${o.op?` fill-opacity="${o.op}"`:""}/>`+(g?`<path d="${d}" fill="url(#${g})"/>`:"")+
+ `<clipPath id="${id}"><path d="${d}"/></clipPath><g clip-path="url(#${id})">`+
+ (o.so===0?"":`<path d="${BIG}${d}" fill-rule="evenodd" fill="#000" fill-opacity="${o.so||.2}" transform="translate(${n1(-2.2*k)} ${n1(-5.5*k)})"/>`)+
+ (o.ho===0?"":`<path d="${BIG}${d}" fill-rule="evenodd" fill="#fff" fill-opacity="${o.ho||.34}" transform="translate(${n1(1.8*k)} ${n1(2.6*k)})"/>`)+
+ (o.x||"")+(o.far?`<path d="${d}" fill="#000" fill-opacity=".3"/>`:"")+`</g>`+
+ (w?`<path d="${d}" fill="none" stroke="${o.st||D}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`:"")};
+const F=(d,f=C,o={})=>S(d,f,Object.assign({far:1},o));
+const LN=(d,w=1.4,o=.5,c=D)=>`<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-opacity="${o}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const FL=(d,f,o=1,x="")=>`<path d="${d}" fill="${f}"${o<1?` fill-opacity="${o}"`:""}${x}/>`;
+const AO=(d,o=.35)=>`<path d="${d}" fill="#000" fill-opacity="${o}" filter="url(#dzs)"/>`;
+const GLOW=(d,o=.6,c=H)=>`<path d="${d}" fill="${c}" opacity="${o}" filter="url(#dzb)"/>`;
+const O1=g=>`<g style="opacity:calc(1 - var(--o2,1))">${g}</g>`,O2=g=>`<g style="opacity:var(--o2,1)">${g}</g>`,O3=g=>`<g style="opacity:var(--o3,1)">${g}</g>`;
+const WS=(g,x,y)=>`<g style="transform-box:view-box;transform-origin:${x}px ${y}px;transform:scale(var(--ws,1))">${g}</g>`;
+const TR=(g,t)=>`<g transform="${t}">${g}</g>`;
+const SH=(x=100,w=66,y=151)=>`<ellipse cx="${x}" cy="${y}" rx="${w}" ry="7.5" fill="url(#dzS)"/>`;
+const SPARK=(x,y,r=4,c="#fff")=>`<path d="M${x} ${n1(y-r)}Q${x} ${y} ${n1(x+r)} ${y}Q${x} ${y} ${x} ${n1(y+r)}Q${x} ${y} ${n1(x-r)} ${y}Q${x} ${y} ${x} ${n1(y-r)}Z" fill="${c}" opacity=".95"/>`;
+/* textures (drawn inside a shape's clip) */
+const SCL=(x0,y0,x1,y1,st=7,o=.2,c=D)=>{let d="";for(let y=y0,r=0;y<=y1;y+=st*.62,r++)for(let x=x0+(r%2)*st/2;x<=x1;x+=st)d+=`M${n1(x-st/2)} ${n1(y)}q${n1(st/2)} ${n1(st*.5)} ${st} 0`;return `<path d="${d}" fill="none" stroke="${c}" stroke-opacity="${o}" stroke-width="1" stroke-linecap="round"/>`};
+const FTX=(x0,y0,x1,y1,st=8,o=.22,c=D)=>{let d="";for(let y=y0,r=0;y<=y1;y+=st*.55,r++)for(let x=x0+(r%2)*st/2;x<=x1;x+=st)d+=`M${n1(x-st/2)} ${n1(y)}q${n1(st/2)} ${n1(st*.7)} ${st} 0`;return `<path d="${d}" fill="none" stroke="${c}" stroke-opacity="${o}" stroke-width="1.1" stroke-linecap="round"/>`};
+const HL=(d,w=2.4,o=.55)=>`<path d="${d}" fill="none" stroke="#fff" stroke-opacity="${o}" stroke-width="${w}" stroke-linecap="round"/>`;
+/* ---------- parts ---------- */
+const HORN=(d,o={})=>S(d,o.c||H,{g:"dzH",w:2.2,far:o.far,so:.16,s:.6,x:(o.r?LN(o.r,1.1,.4):"")+(o.far?"":HL(o.hl||"",1.6,.7))});
+/* horn grown from base (bx,by) along curve to tip; w base width, bend */
+const HN=(bx,by,tx,ty,wd,bend=0,o={})=>{const dx=tx-bx,dy=ty-by,l=Math.hypot(dx,dy),nx=-dy/l,ny=dx/l,mx=bx+dx*.5+nx*bend,my=by+dy*.5+ny*bend;
+ const a=[bx-nx*wd/2,by-ny*wd/2],b=[bx+nx*wd/2,by+ny*wd/2];
+ const d=`M${pt(a)}Q${pt([mx-nx*wd*.32,my-ny*wd*.32])} ${pt([tx,ty])}Q${pt([mx+nx*wd*.28,my+ny*wd*.28])} ${pt(b)}Z`;
+ let r="";if(o.rg)for(let i=1;i<=o.rg;i++){const u=i/(o.rg+1)*.7,cx=bx+dx*u+nx*bend*u*1.6,cy=by+dy*u+ny*bend*u*1.6,s=wd*(1-u)*.45;r+=`M${pt([cx-nx*s,cy-ny*s])}L${pt([cx+nx*s+dx*.03,cy+ny*s+dy*.03])}`}
+ return HORN(d,{far:o.far,c:o.c,r,hl:`M${pt([bx+dx*.12-nx*wd*.18,by+dy*.12-ny*wd*.18])}Q${pt([mx-nx*wd*.2,my-ny*wd*.2])} ${pt([bx+dx*.8+nx*bend*.5,by+dy*.8+ny*bend*.5])}`})};
+const CLAW=(x,y,r=0,s=1,c=IV)=>{const T=`translate(${n1(x)} ${n1(y)}) rotate(${n1(r)}) scale(${s} ${Math.cos(r/57.3)<0?-s:s})`;return `<path transform="${T}" d="M0 -2.8C-4.4 -2.4 -7.6 0 -9 3.6C-5.4 2.6 -2.6 2.4 0 2.8Z" fill="${c}" stroke="${D}" stroke-width="1.3" stroke-linejoin="round"/><path transform="${T}" d="M-1.5 -1.6C-4 -1.2 -6 .2 -7.4 2" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width=".9" stroke-linecap="round"/>`};
+const TOOTH=(x,y,l=5,w=3.2,up)=>`<path d="M${n1(x-w/2)} ${y}L${n1(x)} ${n1(up?y-l:y+l)}L${n1(x+w/2)} ${y}Z" fill="#fff" stroke="${D}" stroke-width="1.1" stroke-linejoin="round"/>`;
+const SPIKE=(x,y,r,l=9,wd=8,c=H)=>{const d=`M${n1(-wd/2)} 1Q${n1(-wd*.12)} ${n1(-l*.5)} 0 ${-l}Q${n1(wd*.2)} ${n1(-l*.42)} ${n1(wd/2)} 1Z`;return `<g transform="translate(${n1(x)} ${n1(y)}) rotate(${n1(r)})">${S(d,c,{g:"dzH",w:1.5,so:.14,s:.4,ho:0})}${HL(`M${n1(-wd*.22)} -1Q${n1(-wd*.08)} ${n1(-l*.5)} 0 ${n1(-l*.86)}`,1,.6)}</g>`};
+/* spikes along a tube's dorsal side */
+const DORSAL=(a,us,s=1,l=9,wd=8,c=H,f=.9)=>us.map((u,i)=>{const p=SIDE(a,u,s,f),L=Array.isArray(l)?l[i]:l;return SPIKE(p[0],p[1],p[2]+(s>0?180:0),L,wd*(Array.isArray(l)?L/Math.max(...l):1),c)}).join("");
+/* glossy eye: s size, t tilt; o.round (baby/cute), o.bw brow width, o.nobrow, o.lid */
+const EY=(x,y,s=7,t=0,o={})=>{const k=v=>n1(v*s),id=uid();
+ const al=`M${k(-1)} ${k(.12)}C${k(-1)} ${k(-.82)} ${k(.3)} ${k(-1.06)} ${k(1.02)} ${k(-.52)}C${k(1.14)} ${k(.32)} ${k(.52)} ${k(.96)} ${k(-.2)} ${k(.92)}C${k(-.72)} ${k(.88)} ${k(-1)} ${k(.52)} ${k(-1)} ${k(.12)}Z`;
+ const ir=o.round?[.06,.12,.74,.84]:[.12,.12,.66,.8];
+ return `<g transform="translate(${x} ${y}) rotate(${t})"><clipPath id="${id}"><path d="${al}"/></clipPath><path d="${al}" fill="#fff"/><g clip-path="url(#${id})">`+
+ `<ellipse cx="${k(ir[0])}" cy="${k(ir[1])}" rx="${k(ir[2])}" ry="${k(ir[3])}" fill="${E}"/><ellipse cx="${k(ir[0])}" cy="${k(ir[1])}" rx="${k(ir[2])}" ry="${k(ir[3])}" fill="url(#dzI)" stroke="#000" stroke-opacity=".35" stroke-width="${k(.1)}"/>`+
+ (o.round?`<ellipse cx="${k(.08)}" cy="${k(.14)}" rx="${k(.4)}" ry="${k(.5)}" fill="#160a0a"/>`:`<ellipse cx="${k(.14)}" cy="${k(.12)}" rx="${k(.17)}" ry="${k(.6)}" fill="#160a0a"/>`)+
+ `<path d="M${k(-.5)} ${k(.62)}Q${k(.12)} ${k(.98)} ${k(.72)} ${k(.5)}" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="${k(.14)}" stroke-linecap="round"/>`+
+ `<path d="M${k(-1.1)} ${k(-.2)}C${k(-.6)} ${k(-1.2)} ${k(.6)} ${k(-1.1)} ${k(1.2)} ${k(-.5)}L${k(1.2)} ${k(-1.4)}L${k(-1.2)} ${k(-1.4)}Z" fill="#000" fill-opacity=".22" transform="translate(0 ${k(.18)})"/>`+
+ `<ellipse cx="${k(-.36)}" cy="${k(-.3)}" rx="${k(.3)}" ry="${k(.22)}" fill="#fff" transform="rotate(-24 ${k(-.36)} ${k(-.3)})"/><circle cx="${k(.42)}" cy="${k(.46)}" r="${k(.12)}" fill="#fff"/><circle cx="${k(-.02)}" cy="${k(-.5)}" r="${k(.07)}" fill="#fff"/></g>`+
+ `<path d="${al}" fill="none" stroke="${D}" stroke-width="1.7"/><path d="M${k(-1)} ${k(.1)}C${k(-1)} ${k(-.82)} ${k(.3)} ${k(-1.06)} ${k(1.02)} ${k(-.52)}" fill="none" stroke="${D}" stroke-width="${k(.36)}" stroke-linecap="round"/>`+
+ (o.nobrow?"":`<path d="M${k(-1.28)} ${k(-.36)}C${k(-1)} ${k(-1.02)} ${k(.32)} ${k(-1.22)} ${k(1.5)} ${k(-.9)}" fill="none" stroke="${D}" stroke-width="${o.bw||3.2}" stroke-linecap="round"/>`)+`</g>`};
+const NOSTRIL=(x,y,r=0,s=1)=>`<path transform="translate(${x} ${y}) rotate(${r}) scale(${s})" d="M-2.6 .6C-1.6 -1.6 1.4 -1.8 2.6 -.4C1 -.8 -.6 -.4 -2.6 .6Z" fill="${D}"/>`;
+/* bat wing. r root, el elbow, wr wrist, tips[], end (trailing edge back on body) */
+const BATW=(r,el,wr,tips,end,o={})=>{let d=`M${pt(r)}L${pt(el)}L${pt(wr)}L${pt(tips[0])}`;const sc=o.sc||.32;
+ for(let i=1;i<tips.length;i++){const a=tips[i-1],b=tips[i],m=[(a[0]+b[0])/2,(a[1]+b[1])/2];d+=`Q${pt([m[0]+(wr[0]-m[0])*sc,m[1]+(wr[1]-m[1])*sc])} ${pt(b)}`}
+ const a=tips[tips.length-1],m=[(a[0]+end[0])/2,(a[1]+end[1])/2];d+=`Q${pt([m[0]+(wr[0]-m[0])*.22,m[1]+(wr[1]-m[1])*.22])} ${pt(end)}Z`;
+ const far=o.far,bc=o.bone||C;
+ let veins="";tips.forEach((t,i)=>{if(!i)return;const q=tips[i-1],u=.55;const p1=[wr[0]+(t[0]-wr[0])*u,wr[1]+(t[1]-wr[1])*u],p2=[wr[0]+(q[0]-wr[0])*.75,wr[1]+(q[1]-wr[1])*.75];
+  veins+=`M${pt(p1)}Q${pt([(p1[0]+p2[0])/2+(t[0]-wr[0])*.06,(p1[1]+p2[1])/2+(t[1]-wr[1])*.06])} ${pt(p2)}`;
+  const p3=[wr[0]+(t[0]-wr[0])*.8,wr[1]+(t[1]-wr[1])*.8],m2=[(t[0]+q[0])/2,(t[1]+q[1])/2];veins+=`M${pt(p3)}L${pt([p3[0]+(m2[0]-p3[0])*.45,p3[1]+(m2[1]-p3[1])*.45])}`});
+ const gl=`M${pt([r[0]+(el[0]-r[0])*.3,r[1]+(el[1]-r[1])*.3+6])}Q${pt([el[0]+8,el[1]+10])} ${pt([wr[0]+(tips[0][0]-wr[0])*.3+4,wr[1]+(tips[0][1]-wr[1])*.3+6])}`;
+ let s=S(d,W,{g:"dzW",w:2.2,op:o.op||.93,far,so:.14,s:1.4,x:LN(veins,1,.28)+(far?"":HL(gl,5,.22))+(o.x||"")});
+ const bone=(a,w0,w1)=>TUBE([[a[0][0],a[0][1],w0],[(a[0][0]+a[1][0])/2,(a[0][1]+a[1][1])/2,(w0+w1)/2*.9],[a[1][0],a[1][1],w1]]);
+ const fb=o.fb||1.7,ab=o.ab||3.4;
+ tips.forEach(t=>{s+=S(bone([wr,t],fb,.5),bc,{w:1.5,far,ho:0,so:.18,s:.4})});
+ s+=S(TUBE([[r[0],r[1],ab*1.15],[el[0],el[1],ab*.95],[(el[0]+wr[0])/2,(el[1]+wr[1])/2,ab*.7],[wr[0],wr[1],ab*.8]]),bc,{w:2,far,s:.5});
+ const ang=Math.atan2(wr[1]-el[1],wr[0]-el[0])*57.3;s+=CLAW(wr[0],wr[1],ang+180,1.05,H);
+ if(o.spk)tips.forEach(t=>{const an=Math.atan2(t[1]-wr[1],t[0]-wr[0])*57.3;s+=CLAW(t[0],t[1],an+180,.8,H)});
+ return s};
+/* feathered wing. lead = leading-edge polyline [shoulder,..,wrist,hand]; tips = flight-feather tips from outermost to innermost */
+const FW=(lead,tips,o={})=>{const n=tips.length,far=o.far,segs=[];let tot=0;
+ for(let i=1;i<lead.length;i++){const l=Math.hypot(lead[i][0]-lead[i-1][0],lead[i][1]-lead[i-1][1]);segs.push(l);tot+=l}
+ const at=u=>{let x=u*tot;for(let i=0;i<segs.length;i++){if(x<=segs[i]||i===segs.length-1){const t=Math.min(1,x/segs[i]),a=lead[i],b=lead[i+1];return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]}x-=segs[i]}};
+ const np=o.np||0,bs=tips.map((_,i)=>at(np?(i<np?1-i/np*.16:.84-(i-np)/Math.max(1,n-1-np)*(.84-(1-(o.span||.9)))):1-(i/(n-1))*(o.span||.9)));const geo=tips.map((t,i)=>{const b=bs[i],dx=t[0]-b[0],dy=t[1]-b[1],L=Math.hypot(dx,dy),
+  sp=(Math.hypot(...[0,1].map(k=>t[k]-tips[Math.max(0,i-1)][k]))+Math.hypot(...[0,1].map(k=>t[k]-tips[Math.min(n-1,i+1)][k])))/(i&&i<n-1?2:1);
+  return {b,t,dx,dy,L,nx:-dy/L,ny:dx/L,wd:Math.max(o.fw||5,sp*(o.ov||.62))*(i<(o.pr||0)?.82:1)}});
+ const fea=(g,len,wf,f,sh)=>{const {b,dx,dy,nx,ny}=g,t=[b[0]+dx*len,b[1]+dy*len],wd=g.wd*wf,bd=(o.bend||.05)*g.L*len;
+  const d=`M${pt([b[0]+nx*wd*.4,b[1]+ny*wd*.4])}C${pt([b[0]+dx*len*.4+nx*(wd+bd),b[1]+dy*len*.4+ny*(wd+bd)])} ${pt([t[0]-dx*len*.12+nx*(wd*.8+bd),t[1]-dy*len*.12+ny*(wd*.8+bd)])} ${pt(t)}C${pt([t[0]-dx*len*.08-nx*(wd*.7-bd),t[1]-dy*len*.08-ny*(wd*.7-bd)])} ${pt([b[0]+dx*len*.45-nx*(wd*.9-bd),b[1]+dy*len*.45-ny*(wd*.9-bd)])} ${pt([b[0]-nx*wd*.4,b[1]-ny*wd*.4])}Z`;
+  return S(d,f,{g:"dzW",w:sh?1.6:1.4,far,so:.18,s:.5,ho:.24,x:sh?LN(`M${pt([b[0]+dx*len*.25,b[1]+dy*len*.25])}Q${pt([b[0]+dx*len*.6+nx*bd*.8,b[1]+dy*len*.6+ny*bd*.8])} ${pt([b[0]+dx*len*.94,b[1]+dy*len*.94])}`,1,.42)+(o.band?`<path d="M${pt([b[0]+dx*.78+nx*30,b[1]+dy*.78+ny*30])}L${pt([b[0]+dx*.78-nx*30,b[1]+dy*.78-ny*30])}" stroke="${o.band}" stroke-width="${n1(g.L*.1)}" opacity=".9"/>`:""):""})};
+ let s="";for(let i=n-1;i>=0;i--)s+=fea(geo[i],1,1,o.tip&&i<o.tip?H:W,1);
+ const cv=o.cv||.5;for(let i=n-1;i>=0;i--)s+=i<np?(i===np-1?fea(geo[i],cv*.7,1.5,o.c2||o.cc||C):""):fea(geo[i],cv,1.15,o.c2||o.cc||C);
+ for(let i=n-1;i>=np;i-=1)s+=fea(geo[i],cv*.55,1.1,o.cc||C);
+ /* marginal coverts band along leading edge */
+ const ins=[];for(let i=0;i<=8;i++){const u=i/8,g=geo[Math.round(u*(n-1))],p=at(1-u*(o.span||.9));ins.push([p[0]+g.dx*cv*.14,p[1]+g.dy*cv*.14])}
+ s+=S(SM(lead.map(p=>[p[0],p[1]]).concat(ins.reverse()),1,.7),o.cc||C,{w:2,far,s:.5,x:FTX(-20,-60,220,200,5,.2)});
+ return s};
+/* bird leg: hip(thigh fluff) -> ankle -> foot; toes forward-left */
+const TALON=(hx,hy,ax,ay,fx,fy,o={})=>{const far=o.far,lc=o.c||H,k=o.k||1;
+ let s=S(TUBE([[ax,ay,3.4*k],[fx,fy-2,3*k]]),lc,{w:2,far,s:.4,ho:.2,x:LN(`M${ax-4} ${ay+5}h8M${ax-4} ${ay+10}h8M${ax-4} ${ay+15}h8`,1,.35)});
+ const toes=[[fx-14*k,fy+1,-8],[fx-8*k,fy+2.4,4],[fx+8*k,fy+1,175]];
+ toes.forEach(([x,y])=>{s+=S(TUBE([[fx,fy-1,2.6*k],[(fx+x)/2,(fy+y)/2-1.5,2.2*k],[x,y,1.8*k]]),lc,{w:1.8,far,s:.3,ho:0})});
+ toes.forEach(([x,y,r])=>{s+=CLAW(x,y+.4,r,.82*k,o.cl||"#3a2c2a")});
+ return s};
+/* reptile limb: top -> knee -> ankle, toes forward(left). o: r [top,knee,ankle], far, pads, toes(n), cs claw size, c colour */
+const LEG=(top,kn,an,o={})=>{const r=o.r||[9,6.5,5],far=o.far,c=o.c||C,fy=an[1]+3.5,tn=o.toes||3,sp=o.sp||5.5;
+ let s=S(TUBE([[top[0],top[1],r[0]],[kn[0],kn[1],r[1]]]),c,{far,s:.6,x:o.x||""})+S(TUBE([[kn[0],kn[1],r[1]*.95],[(kn[0]+an[0])/2,(kn[1]+an[1])/2,r[2]*1.05],[an[0],an[1],r[2]]]),c,{far,s:.5});
+ const toes=[];for(let i=0;i<tn;i++){const tx=an[0]-(o.fw||10)+i*sp-(i===tn-1&&o.back?-6:0),ty=fy+(i?1:0);toes.push([tx,ty])}
+ s+=S(SM([[an[0]-r[2],an[1]-1],[an[0]+r[2]+1,an[1]],[an[0]+r[2]+2,fy+1],[toes[0][0]-1,fy+1.5],[toes[0][0]+1,fy-3]]),c,{far,s:.3,w:2.1,ho:.2});
+ toes.forEach(([x,y],i)=>{s+=S(TUBE([[an[0]-1+i*1.5,an[1]+1,2.8],[x,y-1,2.3]]),c,{far,w:1.8,s:.3,ho:0});s+=o.pads?S(EL(x-1,y-1.4,3.4,2.6),B,{far,w:1.4,g:"dzR",ho:0,so:0}):CLAW(x-1,y,-6+i*-3,(o.cs||.85),IV)});
+ return s};
+/* rounded armour scute */
+const SCUTE=(x,y,r=0,w=8,h=5,c=C)=>`<g transform="translate(${n1(x)} ${n1(y)}) rotate(${n1(r)})">${S(`M${-w/2} 1C${-w/2} ${-h} ${w/2} ${-h} ${w/2} 1Z`,c,{w:1.5,s:.3,so:.22,ho:.4})}</g>`;
+const SCUTES=(a,us,s=1,w=8,h=5,c=C,f=.9)=>us.map(u=>{const p=SIDE(a,u,s,f);return SCUTE(p[0],p[1],p[2]+(s>0?180:0),w,h,c)}).join("");
+/* feathered trousers from hip (x,y) to ankle (ax,ay), half-width w */
+const PANTS=(x,y,ax,ay,w=12,o={})=>S(SM([[x-w,y],[x-w*.2,y-w*.75],[x+w,y-w*.1],[x+w*.9,(y+ay)/2],[ax+w*.55,ay-1,1],[ax+w*.3,ay-5],[ax+1,ay+2,1],[ax-1,ay-4],[ax-w*.35,ay+1,1],[ax-w*.5,ay-5],[x-w*.95,(y+ay)/2]]),o.c||C,{far:o.far,g:"dzR",s:.8,x:FTX(x-w-6,y-w,x+w+6,ay+4,5,o.t||.3,o.tc||D)});
+const ART={};
+/* ---------- RURI : blue sky-water hero drake (upright, heroic chibi) ---------- */
+ART.ruri=()=>{
+ const wingF=BATW([96,74],[90,48],[84,20],[[104,2],[128,2],[146,18],[142,44]],[110,82],{far:1});
+ const wingN=BATW([106,76],[124,52],[132,22],[[160,6],[186,18],[196,44],[184,70],[160,84]],[128,96],{ab:3.6});
+ const wing3=O3(WS(BATW([112,86],[136,92],[156,86],[[178,82],[196,98],[188,118],[164,120]],[132,106],{far:1}),112,86));
+ const tA=[[118,128,13],[140,140,11],[164,140,9],[182,128,7],[188,110,5],[184,96,3]];
+ const tail=S(TUBE(tA),C,{x:SCL(110,110,200,160,7,.22)+FL(TUBE([[118,134,9],[140,146,7],[164,146,5],[182,134,3]]),B,.9)+LN("M128 147l1 -6M140 150l0 -6M152 151l-1 -6M164 149l-1 -6M175 143l-2 -5",1.1,.35)})+
+  S("M184 98C176 90 176 78 182 68C186 78 194 82 200 82C196 88 192 94 184 98Z",H,{g:"dzH",w:2})+O2(DORSAL(tA,[.25,.45,.62,.78],1,8,7));
+ const legF=F("M84 124C80 134 80 142 78 146L72 147C68 148 68 152 72 152L96 152C98 148 96 144 94 142L98 126Z")+CLAW(72,151,0,.9)+CLAW(79,152,-4,.9);
+ const thighD=SM([[102,110],[114,98],[132,98],[146,112],[146,128],[136,138],[124,140],[110,134],[102,124]]);
+ const shin=TUBE([[126,134,9],[122,144,8]]);
+ const foot="M108 140C114 138 128 138 132 142C134 146 134 150 130 152L102 152C98 152 96 148 100 146L106 145Z";
+ const legN=S(shin)+S(foot,C,{s:.5})+S(thighD,C,{g:"dzR",s:1.2,x:SCL(108,100,150,140,7,.2)+AO("M100 128C110 140 130 142 146 132",.4)})+LN("M118 104C126 106 134 112 136 120",1.6,.35)+CLAW(101,151,4,1)+CLAW(108,152,-2,1)+CLAW(116,152,-6,1);
+ const torsoD=SM([[66,96],[70,78],[84,68],[102,70],[120,82],[132,102],[130,124],[118,138],[98,142],[80,134],[70,118]]);
+ const torso=S(torsoD,C,{s:1.4,x:SCL(80,66,140,140,7,.16)+S(SM([[56,80],[72,76],[86,90],[90,112],[96,136],[100,150],[50,150]]),B,{g:"dzB",w:0,so:.12,x:LN("M64 92C72 92 80 90 86 88M66 103C74 103 82 101 89 99M69 114C77 114 85 112 91 110M73 125C80 125 87 123 93 121M80 135C85 135 90 133 95 132",1.3,.4)})+AO("M74 70C86 74 98 74 108 70L108 64L74 64Z",.45)});
+ const neckD=TUBE([[70,52,14],[74,66,15],[82,80,15]]);
+ const neck=S(neckD,C,{x:SCL(60,40,100,90,6,.2)+S("M40 50C56 56 64 66 70 90L50 92Z",B,{g:"dzB",w:0,so:.1,x:LN("M58 60l11 -1M60 69l12 -1M63 78l12 -1",1.2,.4)})+AO("M50 52C62 60 78 62 92 56L92 44L50 44Z",.5)});
+ const backSp=O2(SPIKE(88,52,30,10,8)+SPIKE(96,64,42,11,9)+SPIKE(108,72,56,11,9)+SPIKE(121,82,68,10,8));
+ const armF=F(TUBE([[76,86,6],[70,100,5],[60,104,4]]))+CLAW(57,104,-30,.8)+CLAW(58,107,-60,.8);
+ const arm=S(TUBE([[90,88,8.5],[97,104,7],[80,102,5.6]]),C,{s:.6,x:LN("M90 82C96 88 98 96 98 104",1.4,.3)})+[[68,92,-60],[66,98,-90],[68,104,-115]].map(([x,y,r])=>S(TUBE([[78,100,3.4],[x+4,y+1,2.8],[x,y,2.2]]),C,{w:1.8,s:.3,ho:0})+CLAW(x,y,r+180+0,.8)).join("")+S(EL(79,101,6.5,6),C,{s:.4,g:"dzR"});
+ /* head */
+ const hornF=HN(74,22,126,8,10,-7,{far:1});
+ const horn=HN(62,16,122,-6,12,-9,{rg:3});
+ const crown=O3(GLOW("M44 20C40 2 54 -10 70 -12C62 -2 60 8 62 20Z",.7)+HN(54,20,62,-14,8,4,{rg:2})+HN(80,22,100,-12,7,-2));
+ const headD=SM([[9,46],[12,35],[26,28],[40,18],[58,10],[76,13],[88,26],[90,42],[82,56],[64,66],[38,68],[18,63],[10,55]]);
+ const head=S(headD,C,{s:1.1,x:SCL(40,12,90,40,6,.18)+S("M-10 46C10 48 30 50 48 51C62 52 72 46 80 38C86 48 88 58 82 72H-10Z",B,{g:"dzB",w:0,so:.1})+AO("M60 30C72 34 80 44 84 54",.25)+
+  HL("M26 30C36 22 48 15 62 13",2.6,.5)+HL("M13 38C14 35 16 33 19 32",2,.6)+FL("M20 52C26 56 34 57 40 56",D,.12)});
+ const fin=S("M78 40L104 34L94 45L108 52L94 57L104 66L80 62Z",C,{w:2.2,s:.5,x:LN("M80 48L98 42M82 54L100 55M80 58L98 63",1.1,.4)});
+ const face=LN("M12 49C24 54 42 56 56 53C60 52 63 49 64 46",2.4,1)+TOOTH(24,52.4,5.5,3.6)+TOOTH(42,54.6,4,3)+NOSTRIL(17,38,-10,1.1)+FL("M22 44C26 46 30 46 34 45",D,.0);
+ const nose=O2(HN(20,32,20,20,8,3)+HN(38,22,40,9,7,3));
+ const mane=O3(GLOW("M80 30L108 34L98 46L114 54L100 60L112 72L86 68Z",.75)+S("M80 32L106 36L96 46L110 54L98 60L108 70L84 66Z",H,{g:"dzH",w:2}));
+ const mark=O3(`<path d="M84 104Q94 98 106 102M82 116Q94 110 106 114M80 128Q90 124 100 126M62 38Q68 42 70 48" stroke="${H}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`+GLOW("M84 104Q94 98 106 102L104 118Q92 112 82 116Z",.5));
+ const aura=O3(SPARK(30,8,5)+SPARK(186,142,4)+SPARK(10,82,3.5)+SPARK(150,-2,3));
+ const eye=O2(EY(48,35,9.4,-4))+O1(EY(48,36,10.6,-4,{round:1,bw:2.6}))+O1(`<ellipse cx="62" cy="50" rx="5.5" ry="3.2" fill="#ff7a8a" opacity=".35"/>`);
+ return SH(112,66)+wing3+WS(wingF,96,74)+tail+legF+armF+WS(wingN,106,76)+torso+mark+legN+backSp+neck+mane+hornF+crown+horn+fin+head+face+nose+eye+arm+aura};
+/* flame tongue: tip at (x,y) pointing by angle r (0 = up) */
+const FLAME=(x,y,s=1,r=0)=>`<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})"><path d="M0 0C-9 7 -13 15 -10 23C-7 31 7 33 11 24C15 16 9 12 11 4C7 10 4 7 0 0Z" fill="#ff5a1a" stroke="${D}" stroke-width="1.6" stroke-linejoin="round"/><path d="M1 8C-4 12 -6 18 -4 23C-1 28 6 28 7 22C8 17 4 15 5 10C3 13 2 11 1 8Z" fill="${H}"/><path d="M1 16C-1 18 -2 22 0 24C2 26 5 25 5 22C5 20 3 19 1 16Z" fill="#fff6c0"/></g>`;
+/* ---------- HOMURA : rearing fire wyrm, huge spiked wings, armoured belly ---------- */
+ART.homura=()=>{
+ const wingF=BATW([96,72],[82,42],[70,14],[[88,0],[112,0],[128,16],[124,40]],[106,80],{far:1,spk:1});
+ const wingN=BATW([108,76],[128,46],[140,16],[[166,4],[192,14],[202,40],[196,66],[176,84]],[136,100],{spk:1,ab:3.9,fb:1.9});
+ const tA=[[134,126,13],[158,140,11],[180,138,8.5],[194,122,6],[196,104,3.6],[192,92,1.4]];
+ const tail=S(TUBE(tA),C,{x:SCL(120,90,200,160,7,.2)+FL(TUBE([[134,133,8],[158,147,6.5],[180,145,5],[194,129,3]]),B,.9)+LN("M150 151l2 -7M162 152l1 -7M174 150l0 -7M186 144l-1 -6",1.1,.4)})+
+  O2(DORSAL(tA,[.18,.36,.52,.68,.82],1,[9,9,8,7,6],8))+FLAME(192,90,.75,170)+O3(FLAME(197,82,1.05,165)+GLOW("M180 70C200 70 206 96 192 100Z",.6));
+ const legF=F("M100 126C96 136 96 142 94 146L88 147C84 148 84 152 88 152L112 152C114 148 112 144 110 142L114 128Z")+CLAW(88,151,0,.9)+CLAW(95,152,-4,.9);
+ const thigh=SM([[110,108],[124,96],[144,100],[154,118],[150,134],[134,140],[118,134],[110,122]]);
+ const legN=S(TUBE([[136,134,9],[142,146,7.5]]))+S("M110 140C120 138 140 140 148 144C150 148 148 152 144 152L106 152C102 152 102 147 106 146Z",C,{s:.5})+
+  S(thigh,C,{g:"dzR",s:1.2,x:SCL(108,96,156,140,7,.18)+AO("M108 128C120 142 142 144 154 132",.4)})+LN("M122 102C132 104 140 110 144 120",1.6,.35)+CLAW(105,151,4,1)+CLAW(112,152,-2,1)+CLAW(120,152,-6,1);
+ const torsoD=SM([[70,86],[80,70],[100,70],[122,88],[142,112],[140,134],[120,142],[98,136],[80,118]]);
+ const plates=[[70,90,92,82],[72,101,96,94],[76,112,101,106],[83,122,108,117],[92,131,116,127],[103,138,124,136]];
+ const torso=S(torsoD,C,{s:1.4,x:SCL(80,60,150,140,7,.16)+S(SM([[58,82],[76,80],[92,94],[104,116],[118,134],[132,150],[60,150]]),B,{g:"dzB",w:0,so:.12,x:LN(plates.map(q=>`M${q[0]} ${q[1]}Q${(q[0]+q[2])/2+2} ${(q[1]+q[3])/2+3} ${q[2]} ${q[3]}`).join(""),1.6,.45)})+AO("M74 66C86 72 100 72 110 66L110 58L74 58Z",.45)});
+ const nA=[[70,38,11],[72,46,12.5],[78,62,14],[86,78,15.5]];
+ const neck=S(TUBE(nA),C,{x:SCL(50,20,100,90,6,.18)+FL(TUBE([[62,42,8],[64,52,9],[68,66,10],[74,82,10]]),B)+LN("M56 42l10 -2M58 52l11 -2M61 62l12 -2M65 72l12 -2M70 81l11 -2",1.4,.45)+AO("M48 36C60 46 76 46 90 40L90 26L48 26Z",.5)});
+ const back=O2(DORSAL(nA,[.1,.35,.6,.9],-1,[10,11,11,11],9))+O2(SPIKE(102,70,52,11,9)+SPIKE(116,80,60,10,8)+SPIKE(128,94,66,9,8))+SPIKE(96,68,46,6,6)+SPIKE(114,80,58,6,6);
+ const mane=O3(GLOW("M70 14C86 26 96 44 108 62C94 56 84 48 76 40Z",.8)+FLAME(72,16,.9,-118)+FLAME(80,34,.85,-108)+FLAME(90,50,.8,-100));
+ const armF=F(TUBE([[80,84,6],[66,90,5],[56,78,4]]))+CLAW(55,74,60,.8)+CLAW(52,77,80,.8);
+ const arm=S(TUBE([[90,90,8.5],[84,108,7],[64,100,5.5]]),C,{s:.6})+[[50,90,-50],[48,97,-80],[52,104,-110]].map(([x,y,r])=>S(TUBE([[62,100,3.4],[x+5,y+1,2.8],[x,y,2.1]]),C,{w:1.8,s:.3,ho:0})+CLAW(x,y,r+180,.85)).join("")+S(EL(63,100,6,5.6),C,{s:.4,g:"dzR"});
+ /* head: open roaring jaw */
+ const hornF=HN(64,20,104,4,10,-6,{far:1});
+ const horn=HN(56,16,98,-10,12,-8,{rg:3});
+ const crown=O3(GLOW("M38 12C36 -6 48 -14 60 -14C52 -6 50 2 50 12Z",.7)+HN(42,14,46,-12,8,5,{rg:2}));
+ const jaw=S(SM([[64,40],[52,50],[34,54],[16,54],[10,50,1],[22,46],[44,42]]),C,{s:.6,x:S("M0 50C20 51 40 50 64 44V70H0Z",B,{g:"dzB",w:0,so:0})});
+ const mouth=FL("M12 40C26 42 44 42 62 38L62 44C46 48 28 50 12 50Z","#6a0c14")+FL("M22 48C30 44 40 44 48 46C42 50 30 51 22 48Z","#e05a6a")+
+  TOOTH(16,49,5,3,1)+TOOTH(26,49.5,5.5,3.2,1)+TOOTH(38,48,5,3,1);
+ const skull=S(SM([[6,34],[10,24],[26,20],[44,14],[60,10],[74,16],[80,28],[74,40],[60,42],[36,40],[14,40]]),C,{s:.9,x:SCL(30,8,86,40,6,.18)+FL("M0 36C20 38 44 39 62 38L80 30V50H0Z",B,.95)+HL("M24 22C34 17 46 13 58 12",2.4,.5)+AO("M56 24C66 26 74 34 76 42",.25)});
+ const face=TOOTH(14,40,5.5,3.2)+TOOTH(24,40.6,6.5,3.6)+TOOTH(36,40.4,5,3)+TOOTH(48,40,4,2.6)+NOSTRIL(13,26,-14,1.1)+LN("M7 33C8 30 10 28 13 27",1.6,.6,"#fff")+
+  S("M70 30L92 24L82 34L94 40L74 40Z",C,{w:2,s:.4})+O2(HN(18,22,18,10,7,3)+HN(66,38,90,44,7,-3));
+ const eye=O2(EY(44,26,7.6,-12,{bw:3.6}))+O1(EY(44,27,8.8,-10,{round:1,bw:2.6}));
+ const breath=O3(GLOW("M16 50C4 58 -6 72 -6 88C8 84 22 70 26 54Z",.85,"#ff7a1a")+`<path d="M18 49C10 53 2 61 -3 72C-7 81 -3 90 5 88C3 82 8 79 11 83C12 76 19 72 17 66C22 62 25 56 25 51Z" fill="#ff5a1a" stroke="${D}" stroke-width="1.6" stroke-linejoin="round"/><path d="M18 51C12 55 6 62 3 70C1 76 3 82 8 80C8 76 12 74 14 76C14 70 19 66 18 62C21 58 22 55 22 52Z" fill="${H}"/><path d="M18 53C14 56 10 61 9 66C8 70 11 72 13 69C14 66 17 63 17 60C19 57 20 55 20 53Z" fill="#fff6c0"/>`+FLAME(-4,74,.5,30)+FLAME(14,84,.4,-10));
+ return SH(116,66)+WS(wingF,96,72)+tail+legF+armF+WS(wingN,108,76)+torso+back+legN+neck+mane+TR(hornF+crown+horn+jaw+mouth+skull+face+eye+breath,"translate(4 8)")+arm};
+/* lightning bolt */
+const BOLT=(x,y,s=1,r=0)=>`<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})"><path d="M0 0L-8 14L-1 14L-7 28L9 9L2 9L8 0Z" fill="${H}" opacity=".75" filter="url(#dzb)"/><path d="M0 0L-8 14L-1 14L-7 28L9 9L2 9L8 0Z" fill="#fffbd0" stroke="${H}" stroke-width="1.6" stroke-linejoin="round"/></g>`;
+/* single long feather (for tails / crests): base b, tip t, width */
+const FEA=(b,t,wd,f=W,o={})=>{const dx=t[0]-b[0],dy=t[1]-b[1],L=Math.hypot(dx,dy),nx=-dy/L,ny=dx/L;
+ const d=`M${pt([b[0]+nx*wd*.4,b[1]+ny*wd*.4])}C${pt([b[0]+dx*.45+nx*wd,b[1]+dy*.45+ny*wd])} ${pt([t[0]-dx*.15+nx*wd*.6,t[1]-dy*.15+ny*wd*.6])} ${pt(t)}C${pt([t[0]-dx*.15-nx*wd*.6,t[1]-dy*.15-ny*wd*.6])} ${pt([b[0]+dx*.45-nx*wd,b[1]+dy*.45-ny*wd])} ${pt([b[0]-nx*wd*.4,b[1]-ny*wd*.4])}Z`;
+ return S(d,f,{g:"dzW",w:o.w||1.7,far:o.far,so:.16,s:.5,ho:.25,x:(o.x||"")+LN(`M${pt(b)}Q${pt([b[0]+dx*.5+nx*1.5,b[1]+dy*.5+ny*1.5])} ${pt([b[0]+dx*.93,b[1]+dy*.93])}`,1,.45)+(o.eye?"":"")})};
+/* ---------- RAIKO : thunderbird dragon ---------- */
+ART.raiko=()=>{
+ const wingF=FW([[96,80],[90,56],[84,32]],[[66,0],[80,-6],[96,-6],[112,0],[124,12],[132,28],[132,44],[126,58],[116,70]],{far:1,tip:3,np:4,pr:3});
+ const wingN=FW([[106,84],[124,60],[146,36]],[[160,-2],[178,2],[192,14],[200,32],[200,50],[192,66],[180,80],[166,92],[150,100],[134,106]],{tip:3,np:4,pr:3});
+ const wing3=O3(GLOW("M130 60L200 10L204 70L150 104Z",.35)+BOLT(196,40,.9,20)+BOLT(118,-6,.7,-25));
+ /* tail: zig-zag lightning feathers */
+ const zf=(b,t,wd,f)=>{const dx=t[0]-b[0],dy=t[1]-b[1],L=Math.hypot(dx,dy),nx=-dy/L,ny=dx/L,m=[b[0]+dx*.62,b[1]+dy*.62];
+  const d=`M${pt([b[0]+nx*wd*.5,b[1]+ny*wd*.5])}L${pt([m[0]+nx*wd*1.1,m[1]+ny*wd*1.1])}L${pt([m[0]+dx*.1+nx*wd*.2,m[1]+dy*.1+ny*wd*.2])}L${pt(t)}L${pt([m[0]-nx*wd*.2-dx*.05,m[1]-ny*wd*.2-dy*.05])}L${pt([m[0]-dx*.1-nx*wd*.9,m[1]-dy*.1-ny*wd*.9])}L${pt([b[0]-nx*wd*.5,b[1]-ny*wd*.5])}Z`;
+  return S(d,f,{g:"dzW",w:1.7,so:.16,s:.5,x:LN(`M${pt(b)}L${pt(m)}`,1,.4)})};
+ const tail=zf([126,120],[190,150],9,W)+zf([128,118],[196,128],9,H)+zf([126,116],[186,108],8,W)+O2(zf([124,122],[170,158],7,H)+zf([126,112],[180,92],6,H));
+ const legF=TALON(0,0,90,128,86,150,{far:1,k:1.2});
+ const legN=TALON(0,0,112,130,108,151,{k:1.25});
+ const thigh=PANTS(90,114,88,130,11,{far:1})+PANTS(114,112,112,132,13);
+ const torsoD=SM([[64,92],[72,74],[92,66],[114,74],[132,96],[136,118],[124,134],[100,138],[80,128],[68,112]]);
+ const torso=S(torsoD,C,{s:1.3,x:FTX(70,60,140,140,7,.22)+S(SM([[50,84],[66,78],[82,92],[90,116],[98,140],[50,140]]),B,{g:"dzB",w:0,so:.1,x:FTX(50,76,100,140,6.5,.32)})+AO("M66 70C80 76 96 76 106 70L106 60L66 60Z",.45)});
+ const nA=[[54,48,12],[60,62,14],[70,78,16]];
+ const neck=S(TUBE(nA),C,{x:FTX(36,36,90,96,6,.28)+S("M30 54C44 58 54 70 62 96H30Z",B,{g:"dzB",w:0,so:.1,x:FTX(30,52,70,96,6,.32)})+AO("M40 52C52 60 66 60 80 54L80 42L40 42Z",.5)});
+ const ruff=S("M68 34L92 40L80 46L98 54L80 58L94 68L74 66L66 58Z",C,{w:2,s:.5,x:FTX(60,30,100,70,5,.3)});
+ const crest=S("M58 26L76 10L74 20L98 6L86 22L110 18L88 32L104 38L74 38Z",H,{g:"dzH",w:2,x:LN("M64 30L90 14M70 34L100 24",1.1,.35)})+O2(S("M70 38L96 44L86 48L104 56L78 50Z",H,{g:"dzH",w:1.8}));
+ const crest3=O3(GLOW("M56 24L84 -2L118 14L96 40Z",.7)+S("M62 22L78 2L78 12L102 -4L92 12L116 10L90 26Z","#fffbd0",{g:"dzH",w:1.8}));
+ const headD=SM([[6,54,1],[9,44],[16,36],[32,27],[50,22],[66,28],[74,42],[68,54],[50,61],[30,59],[16,58]]);
+ const head=S(headD,C,{s:1,x:FTX(40,18,80,60,5,.22)+S("M-4 30C12 30 22 34 28 42C30 50 28 58 26 64H-4Z",H,{g:"dzH",w:0,so:.14,x:HL("M10 40C14 36 18 34 24 34",2,.6)})+FL("M24 52C34 56 48 56 60 52L62 62H24Z",B,.95)+AO("M56 30C64 34 70 42 72 52",.25)});
+ const face=LN("M28 40C30 46 30 52 27 58",2,.9)+LN("M12 53C22 55 36 55 50 52C54 51 57 49 58 47",2.3,1)+TOOTH(32,54.6,4.4,3)+TOOTH(40,54.2,4,2.8)+NOSTRIL(18,40,-30,1);
+ const eye=O2(EY(46,38,7.6,-10,{bw:3.8}))+O1(EY(46,39,8.8,-8,{round:1,bw:2.6}));
+ const sparks=O3(BOLT(26,2,.75,-12)+BOLT(4,72,.6,12)+BOLT(70,108,.55,24)+SPARK(150,130,4)+SPARK(12,20,3));
+ const horns=O1(HN(52,26,64,10,7,-2))+O2(HN(60,28,88,4,9,-5,{far:1})+HN(50,25,74,-2,10,-6,{rg:2}));
+ return SH(108,58)+wing3+WS(wingF,96,80)+tail+legF+WS(wingN,106,84)+torso+legN+thigh+neck+ruff+crest3+crest+horns+head+face+eye+sparks};
+/* ---------- WANI : armoured crocodile wyrm (longest, lowest silhouette) ---------- */
+ART.wani=()=>{
+ const wingF=BATW([100,86],[96,62],[90,42],[[106,30],[122,30],[132,44],[126,62]],[114,88],{far:1,spk:1});
+ const wingN=BATW([108,88],[120,62],[120,38],[[140,26],[158,30],[166,46],[156,66],[138,78]],[128,92],{spk:1});
+ const tA=[[146,102,19],[168,108,15],[186,120,11],[194,136,7.5],[186,148,4.5],[172,151,1.5]];
+ const tail=S(TUBE(tA),C,{x:SCL(140,90,200,160,6,.2)+FL(TUBE([[146,112,10],[168,118,9],[184,130,6]]),B,.6)+LN("M160 120l2 -14M172 124l3 -12M182 132l4 -10M188 142l4 -6",1.3,.3)})+
+  SCUTES(tA,[.06,.16,.26,.36,.46,.56,.66],1,8,6,H)+O2(DORSAL(tA,[.12,.32,.52,.72],1,8,8));
+ const fl=LEG([92,116],[82,130],[72,146],{far:1,r:[8,6,5]}),bl=LEG([150,116],[160,132],[154,146],{far:1,r:[8,6,5]});
+ const torsoD=SM([[62,104],[74,90],[100,84],[128,84],[150,92],[160,106],[156,122],[136,130],[100,132],[76,126],[64,116]]);
+ const torso=S(torsoD,C,{s:1.2,x:SCL(60,80,165,135,6.5,.2)+S("M50 116C80 124 120 126 168 116V140H50Z",B,{g:"dzB",w:0,so:0,x:LN("M70 120l-1 10M82 123l-1 10M94 124l0 10M106 125l0 10M118 125l0 10M130 124l1 10M142 121l1 10",1.2,.4)})+AO("M120 108C132 112 146 112 156 106",.3)});
+ const back=[78,90,102,114,126,138,150].map((x,i)=>SCUTE(x,88-Math.sin(i/6*3.14)*4+(i>4?(i-4)*2:0),i<3?-8+i*4:(i-3)*6,9,6,H)).join("")+[84,96,108,120,132,144].map((x,i)=>SCUTE(x,97-Math.sin(i/5*3.14)*3+i*.6,(i-2)*5,8,5)).join("")+
+  O2(SPIKE(90,86,-6,10,8)+SPIKE(114,82,2,11,8)+SPIKE(138,86,14,10,8))+O3(GLOW("M80 88C100 76 130 76 152 90L150 98C130 88 100 88 82 96Z",.7));
+ const legs=LEG([84,112],[70,128],[58,146],{r:[11,7.5,6],fw:11})+S(SM([[132,102],[148,96],[164,104],[166,120],[154,130],[138,126]]),C,{g:"dzR",x:SCL(128,94,168,132,6,.2)})+LEG([150,122],[160,136],[146,146],{r:[9,7,6],fw:11});
+ /* head: long low armoured snout */
+ const headD=SM([[2,106],[4,98],[12,95],[30,96],[44,90],[52,82],[62,82],[70,88],[80,96],[82,108],[72,116],[50,118],[22,117],[6,113]]);
+ const head=S(headD,C,{s:.9,x:SCL(20,82,84,110,5.5,.22)+S("M-4 107C20 108 44 108 66 106L84 102V130H-4Z",B,{g:"dzB",w:0,so:0})+HL("M10 97C22 97 34 96 44 92",2,.5)+AO("M66 92C74 96 80 102 82 110",.25)});
+ const teeth=[10,18,26,35,44,53].map(x=>TOOTH(x,107,4.6,3)).concat([14,22,31,40,49].map(x=>TOOTH(x,107.5,4.2,3,1)));
+ const face=teeth.join("")+LN("M4 107C22 108 44 108 64 106C68 105 70 103 72 100",2.2,1)+S(EL(8,96,4.5,3.6),C,{w:1.6,s:.3})+NOSTRIL(7,95,-10,.9)+
+  [20,30,40].map(x=>`<circle cx="${x}" cy="${97-x*.06}" r="1.6" fill="${H}" stroke="${D}" stroke-width=".8"/>`).join("")+
+  O2(HN(68,86,84,74,7,-2,{far:1})+HN(62,84,74,70,8,-3,{rg:2}))+O3(GLOW("M50 80L56 62L62 76L70 60L72 80Z",.8)+S("M52 82L56 64L62 76L70 62L72 82Z",H,{g:"dzH",w:1.8})+`<path d="M16 102Q32 99 46 96" stroke="${H}" stroke-width="2.2" fill="none"/>`);
+ const eye=O2(EY(57,86,6.2,-6,{bw:3}))+O1(EY(57,86,7,-6,{round:1,bw:2.4}));
+ return SH(102,82)+WS(wingF,100,86)+fl+bl+tail+WS(wingN,108,88)+torso+back+legs+head+face+eye};
+/* ---------- KOMO : basilisk-king komodo (heavy, bull-necked, crowned) ---------- */
+ART.komo=()=>{
+ const wingF=BATW([96,74],[86,46],[76,22],[[94,8],[116,6],[130,22],[128,46]],[110,80],{far:1,op:.97});
+ const wingN=BATW([108,76],[126,48],[134,18],[[162,6],[186,18],[194,44],[184,70],[160,84]],[132,96],{op:.97,ab:3.8});
+ const tA=[[150,108,17],[172,122,13],[188,136,9],[198,148,5],[192,154,1.5]];
+ const tail=S(TUBE(tA),C,{x:SCL(140,96,200,160,6,.24)+LN("M162 112l-4 18M176 124l-5 14M188 136l-5 10",3,.18)})+O2(DORSAL(tA,[.15,.35,.55,.72],1,[8,8,7,6],8));
+ const fl=LEG([88,118],[84,134],[80,146],{far:1,r:[9,7,6]}),bl=LEG([146,118],[152,134],[150,146],{far:1,r:[9,7,6]});
+ const torsoD=SM([[58,96],[70,80],[96,74],[126,76],[150,88],[160,106],[154,124],[132,132],[100,134],[74,128],[60,114]]);
+ const torso=S(torsoD,C,{s:1.4,x:SCL(56,70,165,140,7,.24)+S("M48 118C76 128 116 132 166 122V146H48Z",B,{g:"dzB",w:0,so:0,x:SCL(48,118,166,146,5,.25)})+
+  `<path d="M70 96Q80 100 92 98M104 92Q116 96 128 94M86 110Q98 114 110 112M120 108Q132 112 144 108" stroke="${D}" stroke-opacity=".22" stroke-width="2.4" fill="none" stroke-linecap="round"/>`+AO("M128 104C140 108 152 108 160 100",.3)});
+ const back=[70,80,90,100,110,120,130,140,150].map((x,i)=>`<circle cx="${x}" cy="${n1(82-Math.sin(i/8*3.14)*7+i*.9)}" r="3.6" fill="${H}" stroke="${D}" stroke-width="1.3"/><circle cx="${x-1}" cy="${n1(81-Math.sin(i/8*3.14)*7+i*.9)}" r="1.2" fill="#fff" opacity=".7"/>`).join("")+
+  O2(SPIKE(84,76,-14,9,8)+SPIKE(104,72,0,10,8)+SPIKE(124,74,12,10,8)+SPIKE(142,82,28,9,8));
+ const legs=S(SM([[64,92],[84,88],[96,100],[92,120],[78,124],[64,114]]),C,{g:"dzR",x:SCL(60,86,100,126,6,.22)})+LEG([78,114],[70,132],[64,146],{r:[11,8,7],fw:12,sp:6.5,cs:1})+
+  S(SM([[124,100],[144,92],[162,102],[164,122],[150,132],[132,128]]),C,{g:"dzR",x:SCL(122,90,166,134,6,.22)})+LEG([148,122],[158,136],[146,146],{r:[10,8,7],fw:12,sp:6.5,cs:1});
+ /* bull neck with skin folds + dewlap */
+ const neck=S(SM([[34,78],[50,66],[70,70],[82,86],[80,104],[66,112],[50,106],[38,94]]),C,{s:.9,x:SCL(30,62,86,112,6,.24)+FL("M30 92C44 100 60 106 76 108V120H30Z",B,.9)+
+  LN("M42 90C50 96 60 98 70 96M46 98C54 104 64 106 74 104M52 82C60 86 68 88 76 86",1.8,.35)+AO("M38 70C50 76 62 80 74 78L74 60L38 60Z",.45)});
+ const headD=SM([[8,80],[12,70],[24,64],[38,56],[52,52],[64,56],[72,66],[70,78],[60,86],[40,90],[20,90],[10,86]]);
+ const crown=O1(S("M42 54L46 46L50 52L54 44L58 52L62 48L62 58Z",H,{g:"dzH",w:1.6}))+
+  O2(S("M38 56L42 36L50 48L56 30L62 46L70 36L68 60Z",H,{g:"dzH",w:2,x:LN("M42 40L46 52M56 34L57 50M68 40L64 54",1,.4)}))+
+  O3(GLOW("M34 56L36 22L46 40L54 12L62 38L74 20L72 58Z",.8)+S("M34 56L36 24L46 40L54 14L62 38L74 22L72 58Z",H,{g:"dzH",w:2})+S(EL(54,42,3.6),"#fff",{w:1.2,g:"dzR"}));
+ const head=S(headD,C,{s:.9,x:SCL(14,52,74,86,5,.26)+FL("M2 80C20 82 40 82 60 78L74 74V100H2Z",B,.95)+HL("M18 66C28 60 40 55 52 54",2,.5)});
+ const face=LN("M8 80C24 82 42 82 58 78C61 77 63 75 64 72",2.2,1)+TOOTH(18,81,4.4,3)+TOOTH(28,81.6,4,2.8)+NOSTRIL(13,70,-12,1)+
+  `<path d="M9 81Q2 84 -4 82M2 83.5L-4 87" stroke="#e5483f" stroke-width="2.2" fill="none" stroke-linecap="round"/>`+
+  S("M40 64C46 56 58 56 64 62C58 61 52 62 48 68Z",C,{w:1.8,s:.3})+O3(`<path d="M44 70L62 66" stroke="${H}" stroke-width="2" opacity=".9"/>`);
+ const eye=O2(EY(52,67,6.4,-12,{bw:3.6}))+O1(EY(52,68,7.2,-10,{round:1,bw:2.4}));
+ return SH(104,78)+WS(wingF,96,74)+fl+bl+tail+WS(wingN,108,76)+torso+back+legs+neck+crown+head+face+eye};
+/* ---------- TSUNO : horn-crowned armour drake (frill shield, dome armour, club tail, pillar legs) ---------- */
+ART.tsuno=()=>{
+ const wingF=BATW([108,80],[104,58],[98,40],[[114,30],[130,30],[138,44],[132,60]],[120,84],{far:1});
+ const wingN=BATW([116,82],[128,58],[130,36],[[150,26],[166,32],[172,48],[160,66],[144,76]],[134,90],{});
+ const tA=[[150,108,15],[170,114,11],[184,118,7],[192,120,5]];
+ const club=S(SM([[184,112],[194,104],[204,110],[206,122],[198,132],[186,130],[182,122]]),H,{g:"dzR",s:.6,x:LN("M188 112C194 116 196 122 194 128",1.4,.3)})+
+  SPIKE(196,104,-20,7,6)+SPIKE(206,116,70,7,6)+SPIKE(200,132,150,6,6)+O3(GLOW("M182 106C206 98 214 130 190 136Z",.7));
+ const tail=S(TUBE(tA),C,{x:SCL(146,96,200,130,6,.2)})+SCUTES(tA,[.1,.3,.5,.7],1,7,5,H)+O2(SPIKE(166,108,-30,8,7)+SPIKE(180,114,-10,7,6))+club;
+ const pill=(x,y,far,rr=10)=>S(SM([[x-rr,y-14],[x+rr,y-14],[x+rr-1,y+12],[x+rr+2,y+24],[x-rr-3,y+24],[x-rr+1,y+12]]),C,{far,s:.6,x:SCL(x-14,y-16,x+14,y+26,5.5,.22)})+
+  [0,1,2].map(i=>S(`M${x-rr-2+i*(rr*.8)} ${y+24}c0 -4 ${rr*.7} -4 ${rr*.7} 0Z`,IV,{w:1.3,g:"dzH",so:0,ho:0,far})).join("");
+ const torsoD=SM([[58,104],[66,84],[88,72],[118,70],[146,80],[160,100],[156,120],[134,130],[100,132],[72,126],[60,116]]);
+ const plates=[];[[76,84],[92,76],[108,73],[124,74],[140,80],[152,92],[84,96],[100,90],[116,88],[132,90],[146,100],[96,106],[112,104],[128,106],[142,112]].forEach(([x,y],i)=>plates.push(SCUTE(x,y+5,(x-112)*.35,13,9,i<6?H:C)));
+ const torso=S(torsoD,C,{s:1.4,x:plates.join("")+S("M50 118C80 128 120 130 166 118V140H50Z",B,{g:"dzB",w:0,so:0,x:LN("M72 122l0 8M86 124l0 9M100 125l0 9M114 125l0 9M128 124l0 9M142 120l0 8",1.2,.4)})});
+ const sideSp=SPIKE(66,104,-100,9,8)+SPIKE(80,118,-130,8,8)+SPIKE(156,112,100,8,7)+O2(SPIKE(98,128,-170,7,7)+SPIKE(124,130,170,7,7)+SPIKE(160,96,70,9,8));
+ /* frill shield crowned with horns */
+ const ribs=[-160,-128,-96,-64,-32,0];
+ const frillHorns=ribs.map((a,i)=>{const t=a/57.3,x=n1(60+Math.cos(t)*32.5),y=n1(72+Math.sin(t)*32.5);return SPIKE(x,y,a+90,i===2||i===3?12:9,8)}).join("");
+ const fr=[];for(let a=-172;a<=12;a+=8){const t=a/57.3,r=(Math.round((a+172)/8)%4===0)?35:31;fr.push([n1(60+Math.cos(t)*r),n1(72+Math.sin(t)*r)])}
+ const frill=O2(frillHorns)+O1(ribs.slice(1,5).map(a=>{const t=a/57.3;return SPIKE(n1(60+Math.cos(t)*30),n1(72+Math.sin(t)*30),a+90,6,7)}).join(""))+
+  S(SM(fr.concat([[96,90],[60,96],[26,90]])),W,{s:1,x:`<path d="M30 84C26 56 42 42 60 42C80 42 94 56 92 84" fill="none" stroke="${C}" stroke-width="7"/>`+LN("M60 74L32 58M60 74L44 46M60 74L60 42M60 74L76 46M60 74L88 58",1.6,.3)+
+   [[34,64],[46,50],[60,46],[74,50],[86,64]].map(([x,y])=>S(EL(x,y,3.6,3),H,{w:1.1,g:"dzR",so:0})).join("")+`<path d="M24 74C24 46 40 36 60 36C80 36 96 46 96 74" fill="none" stroke="${H}" stroke-width="2.2" opacity=".75"/>`})+
+  O3(GLOW("M24 66C24 30 90 24 100 66C100 30 30 26 24 66Z",.8)+`<path d="M38 52Q60 30 86 50" stroke="#fff" stroke-width="2.4" fill="none" opacity=".9"/>`);
+ const headD=SM([[6,92],[10,80],[24,72],[42,66],[60,68],[72,78],[72,94],[62,104],[40,108],[20,106],[8,100]]);
+ const head=S(headD,C,{s:.9,x:SCL(20,64,76,96,5,.24)+FL("M0 96C20 99 44 100 66 96V120H0Z",B,.95)+HL("M18 76C28 70 40 67 52 67",2,.5)});
+ const beak=S("M4 90C2 84 6 78 14 78C16 84 16 90 12 96C8 96 5 94 4 90Z",H,{g:"dzH",w:1.8});
+ const face=LN("M8 96C24 99 44 100 60 96C63 95 65 93 66 90",2.2,1)+TOOTH(22,98.4,4,2.8)+NOSTRIL(18,84,-12,1)+
+  HN(22,76,14,58,9,4,{rg:2})+O2(HN(44,70,30,40,10,6,{rg:3,far:1})+HN(50,70,38,38,11,6,{rg:3}))+O1(HN(48,70,44,58,7,2));
+ const eye=O2(EY(46,84,6,-6,{bw:3.4}))+O1(EY(46,85,7,-6,{round:1,bw:2.4}));
+ return SH(104,78)+WS(wingF,108,80)+pill(84,122,1,9)+pill(150,122,1,9)+tail+WS(wingN,116,82)+torso+sideSp+pill(74,124,0,11)+pill(138,124,0,11)+frill+head+beak+face+eye};
+/* ---------- IGURA : iguana sail-drake (tall spined sail instead of wings, dewlap, whip tail, high-walk legs) ---------- */
+ART.igura=()=>{
+ const sp=[[80,84,-40],[92,80,-26],[104,78,-12],[116,78,2],[128,80,16],[140,84,30],[150,90,42]];
+ const ht=[22,34,46,52,48,38,24];
+ const tips=sp.map(([x,y],i)=>[x+(i-3)*3,y-ht[i]]);
+ const sailD=SM([[76,90,1]].concat(tips.map((t,i)=>[t[0],t[1]+(i%2?0:2)])).concat([[156,96,1]]));
+ const sail=O1(S(SM([[80,88,1],[96,66],[116,60],[136,70],[150,94,1]]),W,{g:"dzW",w:2,so:.12}))+
+  O2(S(sailD,W,{g:"dzW",w:2.2,so:.12,s:1.4,x:LN("M86 82Q116 48 146 86M90 86Q116 62 142 90",3,.15)+HL("M90 66Q110 30 134 46",4,.25)})+
+   tips.map((t,i)=>S(TUBE([[sp[i][0],sp[i][1],2.6],[t[0],t[1],.3]]),H,{g:"dzH",w:1.6,so:0,ho:0})).join(""))+
+  O3(GLOW(sailD,.5)+tips.map(t=>SPARK(t[0],t[1]-3,3.4)).join(""));
+ const tA=[[146,106,13],[168,116,10],[186,130,7],[196,146,4.5],[190,154,1.5]];
+ const tail=S(TUBE(tA),C,{x:SCL(140,96,200,160,6,.2)+`<path d="M160 104l-6 22M174 114l-7 18M186 128l-8 14M194 142l-7 8" stroke="${D}" stroke-opacity=".35" stroke-width="4"/>`})+O2(DORSAL(tA,[.15,.35,.55],1,7,6));
+ const fl=LEG([88,118],[92,132],[82,146],{far:1,r:[7,5.5,4.5]}),bl=LEG([140,116],[154,128],[148,146],{far:1,r:[7,5.5,4.5]});
+ const torsoD=SM([[64,100],[74,86],[96,80],[124,82],[146,92],[154,108],[146,122],[122,128],[96,128],[76,122],[66,112]]);
+ const torso=S(torsoD,C,{s:1.2,x:SCL(60,78,160,130,6,.2)+S("M50 116C80 124 120 126 160 116V140H50Z",B,{g:"dzB",w:0,so:0,x:SCL(50,116,160,140,5,.22)})+`<path d="M92 92l-4 24M110 90l-4 26M128 92l-4 24" stroke="${D}" stroke-opacity=".18" stroke-width="5" stroke-linecap="round"/>`});
+ const legs=S(SM([[124,98],[140,92],[156,102],[156,118],[144,124],[128,120]]),C,{g:"dzR",x:SCL(120,90,160,126,6,.2)})+LEG([146,116],[162,130],[150,146],{r:[8.5,6,5],sp:6})+
+  LEG([78,108],[66,124],[64,146],{r:[8.5,6,5],sp:6});
+ const neck=S(TUBE([[50,80,11],[62,92,12],[76,100,13]]),C,{x:SCL(36,70,90,110,6,.2)+AO("M40 76C50 84 62 86 72 82L72 70L40 70Z",.4)});
+ const dew=S("M22 82C26 102 40 112 54 104C60 98 62 90 60 82Z",H,{g:"dzB",w:2,x:LN("M30 90L50 88M34 98L52 94M42 104L54 100",1.2,.4)})+O2(S("M54 104C58 110 52 116 46 112Z",H,{g:"dzB",w:1.6}));
+ const headD=SM([[4,76],[6,66],[16,60],[34,56],[50,52],[64,58],[70,70],[64,80],[46,84],[22,84],[8,82]]);
+ const head=S(headD,C,{s:.9,x:SCL(16,52,72,82,5,.24)+FL("M0 76C20 78 42 79 60 76L72 72V96H0Z",B,.95)+HL("M14 62C24 58 36 55 48 54",2,.5)});
+ const face=LN("M5 76C20 78 40 79 56 76C59 75 61 73 62 70",2.2,1)+TOOTH(18,77.6,4,2.8)+NOSTRIL(9,66,-10,1)+
+  S(EL(58,72,6,5.6),B,{g:"dzR",w:1.8})+`<circle cx="57" cy="70.5" r="1.8" fill="#fff" opacity=".8"/>`+O2(SPIKE(34,57,-12,8,6)+SPIKE(44,54,0,9,7)+SPIKE(54,54,14,9,7)+SPIKE(62,58,30,8,6))+
+  SCL(10,56,40,66,4,.0);
+ const eye=O2(EY(40,66,6,-8,{bw:3.2}))+O1(EY(40,67,7,-8,{round:1,bw:2.4}));
+ return SH(104,78)+fl+bl+sail+tail+torso+legs+neck+dew+head+face+eye};
+/* ---------- YAMO : moon-gecko drake (huge eyes, toe pads, waving foot, spiral tail, moth wings) ---------- */
+ART.yamo=()=>{
+ const wingF=BATW([96,86],[90,64],[82,44],[[98,30],[116,30],[126,46],[120,64]],[108,90],{far:1,op:.72});
+ const wingN=BATW([104,88],[118,64],[120,38],[[142,26],[162,32],[170,52],[158,72],[140,82]],[124,94],{op:.72,x:`<circle cx="148" cy="50" r="7" fill="${H}" opacity=".55"/><circle cx="148" cy="50" r="3" fill="#fff" opacity=".7"/>`});
+ const tA=[[146,118,12],[168,124,10],[184,116,8],[188,100,6.5],[180,90,5],[168,92,4],[166,102,3],[174,106,2]];
+ const tail=S(TUBE(tA),C,{x:SCL(140,84,200,140,5.5,.18)+[[168,122],[184,110],[176,92]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.2" fill="${H}"/>`).join("")})+O2(DORSAL(tA,[.1,.25,.4],1,6,6,B));
+ const fl=LEG([92,124],[86,136],[86,146],{far:1,pads:1,r:[7,6,5]}),bl=LEG([140,124],[150,134],[146,146],{far:1,pads:1,r:[7,6,5]});
+ const torsoD=SM([[62,108],[72,92],[96,86],[124,88],[146,100],[152,116],[142,130],[116,136],[90,136],[70,128]]);
+ const spots=[[84,98],[102,94],[120,96],[136,104],[96,110],[116,112],[132,118],[80,114]];
+ const torso=S(torsoD,C,{g:"dzR",s:1.2,x:SCL(60,84,156,140,5.5,.14)+spots.map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${i%3?3:4.2}" fill="${H}"/><circle cx="${x-1}" cy="${y-1}" r="1.2" fill="#fff" opacity=".6"/>`).join("")+S("M50 124C76 134 120 138 160 126V150H50Z",B,{g:"dzB",w:0,so:0})});
+ const glow=O3(spots.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="6" fill="${H}" opacity=".7" filter="url(#dzb)"/>`).join(""));
+ const back=O2(DORSAL([[70,96,1],[100,88,1],[130,92,1],[148,104,1]],[.1,.3,.5,.7,.9],1,6,6,B));
+ const legs=S(SM([[126,104],[142,98],[156,108],[156,124],[144,130],[128,126]]),C,{g:"dzR",x:SCL(122,96,160,132,5,.15)})+LEG([146,122],[160,134],[150,146],{pads:1,r:[8,6.5,5.5],sp:6.5,fw:12})+
+  /* waving front foot */
+  S(TUBE([[78,110,8],[64,116,6.5],[52,104,5.5]]),C,{s:.5})+[[40,94],[42,90],[48,88],[54,90]].map(([x,y],i)=>S(TUBE([[52,102,2.8],[x,y,2.4]]),C,{w:1.6,s:.3,ho:0})+S(EL(x,y,3.4,3),B,{w:1.3,g:"dzR",so:0,ho:0})).join("")+S(EL(51,100,5.5,5),C,{g:"dzR",s:.3});
+ const headD=SM([[4,74],[8,58],[22,46],[42,40],[62,44],[74,58],[74,76],[62,88],[40,92],[18,90],[6,84]]);
+ const horns=O2(HN(48,44,52,30,7,3)+HN(62,48,74,36,7,-2))+O3(GLOW("M40 44C44 18 72 14 86 28C72 26 58 32 52 46Z",.8)+S("M42 46C44 24 66 18 82 26C68 26 58 32 52 48Z",H,{g:"dzH",w:2})+SPARK(84,16,4.5));
+ const head=S(headD,C,{g:"dzR",s:1,x:SCL(30,40,80,70,5,.12)+FL("M-4 76C14 84 34 86 52 84C62 83 70 78 78 72V100H-4Z",B,.95)+`<circle cx="62" cy="54" r="3" fill="${H}"/><circle cx="66" cy="78" r="2.6" fill="${H}"/><circle cx="22" cy="50" r="2.4" fill="${H}"/>`+HL("M16 52C24 46 34 42 44 41",2.4,.5)});
+ const face=LN("M7 75C18 82 34 84 50 80C54 79 57 77 58 74",2.4,1)+`<path d="M18 80Q22 88 30 82" fill="#ff7a8a" stroke="${D}" stroke-width="1.6"/>`+NOSTRIL(10,64,-20,.9)+NOSTRIL(16,62,-10,.9)+`<ellipse cx="52" cy="80" rx="5" ry="3" fill="#ff7a8a" opacity=".4"/>`;
+ const eye=EY(36,64,11,-2,{round:1,bw:2.4});
+ return SH(104,72)+WS(wingF,96,86)+fl+bl+tail+WS(wingN,104,88)+torso+glow+back+legs+horns+head+face+eye};
+/* ---------- HAPA : leaf-casque chameleon drake on a branch (no wings) ---------- */
+const LEAF=(x,y,r,s=1,c=W)=>`<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})">${S("M0 0C6 -9 19 -11 28 -4C19 5 6 6 0 0Z",c,{w:1.6,s:.4,so:.16,x:LN("M1 0L24 -4M8 -2l3 -4M14 -3l3 -3M10 -1l3 2M17 -2l3 2",1,.4)})}</g>`;
+const FLOWER=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})">${[0,72,144,216,288].map(a=>`<ellipse cx="0" cy="-5" rx="3.8" ry="5.6" transform="rotate(${a})" fill="${H}" stroke="${D}" stroke-width="1.1"/><ellipse cx="0" cy="-6" rx="1.4" ry="3" transform="rotate(${a})" fill="#fff" opacity=".5"/>`).join("")}<circle r="2.8" fill="#fff6b0" stroke="${D}" stroke-width="1"/></g>`;
+ART.hapa=()=>{
+ const BR="#8b5e34";
+ const branch=S("M6 140C40 134 90 138 130 136C160 134 184 132 198 128L200 138C182 144 160 146 130 146C90 148 40 150 8 150Z",BR,{s:.6,x:LN("M30 143C50 141 70 142 90 142M120 140C140 140 160 138 180 135",1.3,.35)})+
+  S("M164 134C170 124 178 118 188 116C182 122 178 128 176 134Z",BR,{w:1.8,s:.3})+LEAF(186,116,-40,.8)+LEAF(12,142,160,.8);
+ const tA=[[140,108,11],[160,118,9],[172,134,7],[166,150,5],[152,152,4],[146,144,3],[152,138,2]];
+ const tail=S(TUBE(tA),C,{x:LN("M146 112l2 -8M158 120l3 -8M168 132l6 -4",1.4,.3)+FL(TUBE([[140,114,6],[160,124,5],[170,138,4]]),B,.7)})+O2(LEAF(166,114,-80,.7));
+ const grip=(x,y,far)=>S(`M${x-8} ${y-4}C${x-10} ${y+4} ${x-6} ${y+10} ${x} ${y+8}C${x+6} ${y+10} ${x+10} ${y+4} ${x+8} ${y-4}Z`,C,{far,w:1.8,s:.3,x:LN(`M${x} ${y-2}L${x} ${y+8}`,1.4,.5)});
+ const legsF=S(TUBE([[96,108,5],[90,124,4.5],[96,136,4]]),C,{far:1})+grip(96,138,1)+S(TUBE([[118,110,5],[132,124,4.5],[126,136,4]]),C,{far:1})+grip(126,138,1);
+ const torsoD=SM([[62,98],[70,76],[90,60],[114,58],[136,68],[148,88],[144,108],[124,120],[96,122],[74,116]]);
+ const torso=S(torsoD,C,{s:1.3,x:`<path d="M80 72Q86 96 82 118M98 64Q106 92 100 122M118 62Q126 90 120 120M134 72Q140 94 136 114" stroke="${D}" stroke-opacity=".14" stroke-width="5" fill="none"/>`+SCL(60,56,150,124,5,.12)+
+  S("M50 104C70 116 100 124 150 112V140H50Z",B,{g:"dzB",w:0,so:0})+`<path d="M70 96Q100 88 140 94" stroke="${W}" stroke-width="3" fill="none" opacity=".8"/>`});
+ const crest=[[70,74,-130],[82,62,-110],[98,56,-95],[114,56,-80],[128,62,-62],[140,74,-45],[146,88,-25]];
+ const back=crest.map(([x,y,r],i)=>LEAF(x,y,r,.95+(i===3?.1:0))).join("")+O2(crest.filter((_,i)=>i%2).map(([x,y,r])=>LEAF(x+2,y+2,r+14,.7,B)).join(""))+O3(FLOWER(98,54,.8)+FLOWER(130,62,.75)+FLOWER(150,112,.7));
+ const legs=S(TUBE([[82,106,6.5],[68,120,5.5],[74,136,4.8]]),C,{s:.5})+grip(74,138)+S(TUBE([[132,100,7],[146,118,5.5],[140,136,4.8]]),C,{s:.5})+grip(140,138);
+ /* casque head */
+ const casque=S("M36 56C38 36 56 20 82 22C78 32 76 46 72 62Z",W,{s:.8,x:LN("M42 52C52 40 64 30 78 25M50 44l-4 -6M58 36l-2 -8M66 32l0 -6M54 48l8 0M62 42l8 -2",1.2,.4)})+O2(LEAF(70,38,-60,.85)+LEAF(76,50,-24,.75))+
+  O3(GLOW("M38 30C48 10 72 8 84 18C72 20 60 24 50 34Z",.6)+FLOWER(58,24,1)+FLOWER(78,30,.8)+FLOWER(44,32,.7));
+ const headD=SM([[8,72],[12,62],[26,56],[40,52],[56,52],[68,60],[72,72],[62,82],[42,86],[22,84],[10,80]]);
+ const head=S(headD,C,{s:.9,x:FL("M0 76C20 80 44 81 62 78L74 74V96H0Z",B,.95)+SCL(16,52,72,80,4.5,.15)+HL("M16 60C24 56 34 54 44 53",2,.5)});
+ const face=LN("M10 76C24 80 42 81 58 77C61 76 63 74 64 71",2.2,1)+NOSTRIL(14,66,-10,.9)+`<ellipse cx="54" cy="80" rx="4.6" ry="2.8" fill="#ff7a8a" opacity=".4"/>`+
+  S(EL(44,66,10.5),C,{g:"dzR",w:2.1,x:LN("M36 60a10 10 0 0 1 16 0M34 70a10 10 0 0 0 18 2",1.2,.35)})+O3(`<path d="M10 77C2 80 -2 88 4 92C8 94 12 90 10 86" fill="none" stroke="#ff7a9a" stroke-width="3.2" stroke-linecap="round"/><circle cx="9" cy="86" r="3.6" fill="#ff7a9a" stroke="${D}" stroke-width="1.2"/>`);
+ const eye=EY(43,66,6.6,0,{round:1,bw:2.2});
+ return SH(104,90,152)+legsF+tail+branch+torso+back+legs+casque+head+face+eye};
+/* ---------- KOBURAN : hooded eastern serpent-dragon (one continuous tapering S-body) ---------- */
+ART.koburan=()=>{
+ const sp=[[62,54,12],[84,68,14],[110,64,15],[134,52,15],[158,56,14.5],[168,78,14],[152,98,13.5],[122,102,13],[98,112,12],[94,130,11],[114,142,9.5],[144,144,8],[170,136,6],[188,122,4.2],[198,106,2.2],[200,96,.4]];
+ const body=TUBE(sp);
+ const belly=TUBE(sp.slice(0,-1).map((p,i)=>{const u=i/(sp.length-1),q=SIDE(sp,u,1,.5);return [q[0],q[1],p[2]*.55]}));
+ let sc="";for(let i=1;i<44;i++){const u=i/46,a=SIDE(sp,u,1,1.05),b=SIDE(sp,u,1,.05);sc+=`M${pt(a)}L${pt(b)}`}
+ const bodyS=S(body,C,{s:1.2,x:SCL(40,30,200,160,5.5,.2)+S(belly,B,{g:"dzB",w:0,so:.1,ho:0})+LN(sc,1.3,.4)+HL(SM(sp.slice(1,13).map((p,i)=>{const q=SIDE(sp,(i+1)/15,-1,.55);return [q[0],q[1]]}),0),2.4,.35)});
+ const fin=(us,L,c)=>us.map((u,i)=>{const p=SIDE(sp,u,-1,.92),r=p[2],l=L*(1-u*.55);return `<g transform="translate(${n1(p[0])} ${n1(p[1])}) rotate(${n1(r)})">${S(`M-6 1C-5 ${-l*.5} -1 ${-l*.8} 4 ${-l}C2 ${-l*.6} 4 ${-l*.3} 7 1Z`,c,{g:"dzH",w:1.5,s:.4,so:.14,ho:0})}</g>`}).join("");
+ const ridge=fin([.06,.12,.18,.24,.3,.36,.42,.48,.54,.6,.66,.72,.78,.84],9,H)+O2(fin([.09,.21,.33,.45,.57,.69],15,H));
+ const glow=O3(GLOW(body,.3)+fin([.09,.21,.33,.45,.57,.69],16,"#fff8c0"));
+ const limb=(u,dx,dy,far)=>{const p=SIDE(sp,u,1,.6),e=[p[0]+dx,p[1]+dy];return S(TUBE([[p[0],p[1],5],[p[0]+dx*.5,p[1]+dy*.5-2,4],[e[0],e[1],3.4]]),C,{far,s:.4})+[-30,10,50].map(a=>CLAW(e[0]-1,e[1]+1,a+Math.atan2(dy,dx)*57.3-180,.75,H)).join("")};
+ const legs=limb(.14,-14,18,1)+limb(.5,-16,14,1);
+ const legsN=limb(.18,-10,22)+limb(.55,-6,20);
+ const wing=WS(FW([[104,60],[118,44],[134,32]],[[140,16],[154,14],[166,20],[172,32],[168,44],[156,52],[140,58],[124,62]],{np:3,cv:.42,cc:B,ov:.7}),104,60);
+ const wingF=WS(FW([[96,60],[100,44],[108,30]],[[106,14],[118,10],[130,16],[134,28],[128,40],[118,48]],{far:1,np:3,cv:.42,cc:B,ov:.7}),96,60);
+ /* hood + head */
+ const hood=S(SM([[40,30],[52,8],[72,4],[88,18],[90,44],[78,66],[58,72],[44,56]]),W,{s:1,x:LN("M48 26Q66 32 84 22M46 42Q66 50 88 40M50 58Q66 64 82 56",2,.4)+`<path d="M66 34C58 34 56 44 62 48C68 50 74 44 70 38" fill="none" stroke="${C}" stroke-width="3"/>`})+O2(fin([.0],0,H)+["M52 10L46 0L58 6Z","M72 4L74 -6L80 6Z","M88 18L98 12L92 24Z"].map(d=>S(d,H,{g:"dzH",w:1.4})).join(""));
+ const antler=(x,y,far)=>S(`M${x} ${y}C${x+2} ${y-10} ${x+8} ${y-18} ${x+16} ${y-22}L${x+18} ${y-19}C${x+12} ${y-15} ${x+8} ${y-10} ${x+6} ${y-4}C${x+10} ${y-8} ${x+14} ${y-9} ${x+18} ${y-8}L${x+18} ${y-5}C${x+12} ${y-4} ${x+8} ${y-1} ${x+6} ${y+2}Z`,H,{g:"dzH",w:1.6,far,so:.12});
+ const horns=antler(56,22,1)+antler(48,20)+O2(TR(antler(48,20),"translate(-4 -10) scale(1.1)")+"");
+ const mane=[[58,30,60],[62,38,90],[60,46,120],[54,52,150]].map(([x,y,r],i)=>TR(S("M0 0C-4 -6 -2 -14 4 -18C2 -12 6 -10 8 -14C10 -8 8 -2 4 2Z",H,{g:"dzH",w:1.4,so:0}),`translate(${x} ${y}) rotate(${r}) scale(${1+i*.08})`)).join("")+O3(GLOW("M56 20C80 30 92 52 80 72C72 56 64 44 56 36Z",.8));
+ const headD=SM([[6,40],[8,30],[20,25],[30,18],[44,14],[56,18],[62,30],[58,42],[46,48],[28,50],[12,48]]);
+ const head=S(headD,C,{s:.8,x:SCL(20,14,64,42,4.5,.2)+FL("M0 42C16 44 32 44 48 42L64 36V60H0Z",B,.95)+HL("M14 28C22 22 32 18 42 16",2,.5)});
+ const face=LN("M7 42C18 44 32 45 46 42C50 41 52 39 53 36",2.2,1)+TOOTH(16,43.4,4.4,3)+TOOTH(26,44,3.6,2.6)+NOSTRIL(10,32,-14,1)+S(EL(10,30,4,3.2),C,{w:1.4,s:.3})+
+  `<path d="M10 44C0 48 -4 60 2 68C4 60 8 54 14 50M14 30C4 22 -6 26 -8 34C-2 30 4 30 10 34" fill="none" stroke="${H}" stroke-width="2.4" stroke-linecap="round"/><path d="M10 44C0 48 -4 60 2 68M14 30C4 22 -6 26 -8 34" fill="none" stroke="${D}" stroke-width=".8" stroke-opacity=".5"/>`+
+  `<path d="M24 50C22 58 26 64 32 64C30 58 32 54 34 50Z" fill="${H}" stroke="${D}" stroke-width="1.2"/>`;
+ const eye=O2(EY(40,30,6.4,-10,{bw:3.4}))+O1(EY(40,31,7.2,-8,{round:1,bw:2.4}));
+ const pearl=O3(`<circle cx="24" cy="96" r="14" fill="${H}" opacity=".75" filter="url(#dzb)"/>`+S(EL(24,96,8),"#fff",{g:"dzR",w:1.6})+`<path d="M14 120C24 112 40 116 46 108M150 20C160 14 176 18 182 10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>`+SPARK(36,84,3.4));
+ return SH(124,66)+wingF+legs+hood+glow+ridge+bodyS+legsN+wing+mane+horns+head+face+eye+pearl};
+/* ---------- KAME : Genbu shell dragon with a serpent tail ---------- */
+ART.kame=()=>{
+ const hex=(x,y,r)=>`M${x} ${y-r}L${n1(x+r*.87)} ${n1(y-r/2)}L${n1(x+r*.87)} ${n1(y+r/2)}L${x} ${y+r}L${n1(x-r*.87)} ${n1(y+r/2)}L${n1(x-r*.87)} ${n1(y-r/2)}Z`;
+ const wings=WS(BATW([128,60],[136,38],[132,16],[[152,8],[170,16],[178,34],[168,52]],[146,62],{far:1})+BATW([112,56],[120,32],[118,8],[[140,0],[160,8],[168,28],[156,48],[138,58]],[132,62],{}),120,58);
+ const sA=[[164,112,7],[182,108,6.5],[192,94,6],[188,80,5.5],[176,74,5]];
+ const snake=S(TUBE(sA),C,{x:SCL(160,70,200,120,4.5,.25)+FL(TUBE([[166,116,3],[186,112,3],[196,96,3]]),B,.8)})+S(SM([[164,80],[166,70],[178,66],[186,72],[180,80],[170,82]]),C,{s:.4,x:FL("M160 78H190V90H160Z",B,.9)})+
+  EY(173,72,2.6,-10,{nobrow:1})+`<path d="M164 76L156 78M156 78l-3 -2.4M156 78l-3 2.4" stroke="#e5483f" stroke-width="1.5" fill="none" stroke-linecap="round"/>`+O2(SPIKE(184,68,30,5,4));
+ const leg=(x,far,big)=>{const r=big?11:9;return S(SM([[x-r,96],[x+r,96],[x+r,136],[x+r+3,148],[x-r-3,148],[x-r,136]]),C,{far,s:.6,x:SCL(x-14,96,x+14,150,5,.24)})+[0,1,2].map(i=>S(`M${x-r-1+i*r*.75} 148c0 -4 ${n1(r*.66)} -4 ${n1(r*.66)} 0Z`,IV,{w:1.2,g:"dzH",so:0,ho:0,far})).join("")};
+ const shellD=SM([[38,112,1],[44,80],[66,52],[100,40],[136,46],[162,70],[172,112,1]]);
+ const scutes=[[104,64,15],[78,80,12],[130,80,12],[104,92,12],[60,100,9],[150,100,9],[84,104,8],[126,104,8]];
+ const shell=S(shellD,W,{g:"dzR",s:1.6,w:2.8,x:`<path d="${scutes.map(([x,y,r])=>hex(x,y,r)).join("")}" fill="${H}" fill-opacity=".38" stroke="${D}" stroke-width="1.7" stroke-opacity=".6"/>`+
+  `<path d="${scutes.map(([x,y,r])=>hex(x,y-1,r*.55)).join("")}" fill="#fff" fill-opacity=".14"/>`+HL("M58 70C72 54 92 46 112 46",4,.35)});
+ const rim=S("M32 110C80 124 130 124 178 110C180 118 174 124 160 126C120 132 80 132 50 126C38 124 30 118 32 110Z",B,{g:"dzB",w:2.2,x:LN("M56 118l0 9M74 120l0 10M92 121l0 10M110 121l0 10M128 121l0 10M146 119l0 9M162 116l0 8",1.3,.45)});
+ const spikes=O2([[104,40,0,11],[80,48,-30,9],[128,46,30,9],[60,64,-55,8],[148,64,55,8]].map(([x,y,r,l])=>SPIKE(x,y,r,l,8)).join(""))+
+  O3(`<path d="${scutes.slice(0,4).map(([x,y,r])=>hex(x,y,r*.55)).join("")}" fill="none" stroke="#fff" stroke-width="1.8"/>`+GLOW(hex(104,64,9),.8));
+ const nA=[[62,64,10],[52,80,11],[48,98,12]];
+ const neck=S(TUBE(nA),C,{x:SCL(30,50,70,110,5,.24)+FL(TUBE([[56,66,6],[45,82,7],[42,98,7]]),B,.95)+LN("M44 78l9 2M42 86l10 1M41 94l10 0",1.2,.4)+AO("M40 58C50 64 62 66 72 62L72 52L40 52Z",.45)});
+ const headD=SM([[6,58],[10,48],[22,44],[34,38],[48,36],[60,42],[66,54],[60,64],[44,70],[24,70],[10,66]]);
+ const head=S(headD,C,{s:.8,x:SCL(16,36,68,62,4.5,.22)+FL("M0 60C18 62 36 63 54 60L68 56V80H0Z",B,.95)+HL("M14 48C22 43 32 40 42 38",2,.5)});
+ const face=LN("M7 60C20 62 36 63 50 60C53 59 55 57 56 54",2.2,1)+TOOTH(18,61.4,4.2,3)+NOSTRIL(11,51,-12,1)+
+  `<path d="M12 62C2 70 4 84 12 86M18 64C12 74 16 84 22 84" fill="none" stroke="${H}" stroke-width="2.2" stroke-linecap="round"/>`+
+  HN(52,40,72,24,7,-3,{far:1})+HN(44,38,58,18,8,-4,{rg:2})+O3(GLOW("M28 36C26 20 36 12 46 12C40 18 38 26 38 36Z",.8)+HN(32,38,36,14,7,2));
+ const eye=O2(EY(38,52,6.2,-8,{bw:3.2}))+O1(EY(38,53,7,-8,{round:1,bw:2.4}));
+ return SH(104,76)+wings+snake+leg(70,1)+leg(150,1)+shell+spikes+rim+leg(58,0,1)+leg(136,0,1)+neck+head+face+eye};
+/* ---------- ERIMA : frill-necked sprinter drake (mid-stride, umbrella frill, balancing tail) ---------- */
+ART.erima=()=>{
+ const wingF=BATW([100,80],[94,56],[86,32],[[104,18],[122,20],[134,36],[128,56]],[112,86],{far:1});
+ const wingN=BATW([108,82],[122,56],[126,28],[[150,16],[172,24],[182,46],[170,68],[150,80]],[130,94],{});
+ const tA=[[132,96,13],[156,90,10],[178,80,7],[194,70,4],[202,63,.5]];
+ const tail=S(TUBE(tA),C,{x:SCL(126,56,204,110,6,.2)+`<path d="M150 84l4 16M166 78l4 14M182 70l4 11" stroke="${D}" stroke-opacity=".28" stroke-width="4"/>`})+O2(DORSAL(tA,[.15,.35,.55,.72],-1,[8,8,7,6],7));
+ /* far leg pushing off (foot lifted) */
+ const legF=F(SM([[124,100],[138,98],[148,110],[150,122],[140,124],[128,114]]))+F(TUBE([[144,118,6],[156,128,4.5],[164,132,4]]))+F(TUBE([[164,132,3.2],[170,142,2.6]]))+F(TUBE([[164,132,3],[176,138,2.4]]))+CLAW(170,143,-80,.75)+CLAW(177,139,-60,.75);
+ const armF=F(TUBE([[78,96,4.5],[70,106,3.8],[62,102,3.4]]))+CLAW(60,101,-20,.7);
+ const torsoD=SM([[64,94],[72,80],[92,74],[118,78],[136,88],[140,102],[128,112],[104,114],[82,110],[68,104]]);
+ const torso=S(torsoD,C,{s:1.1,x:SCL(60,70,144,116,6,.2)+S("M50 98C70 108 100 116 144 104V130H50Z",B,{g:"dzB",w:0,so:0,x:LN("M74 106l-1 7M86 110l-1 7M98 112l0 7M110 112l0 7M122 110l1 6",1.2,.4)})+`<path d="M90 80l-3 18M106 78l-3 20M122 82l-3 18" stroke="${D}" stroke-opacity=".2" stroke-width="5" stroke-linecap="round"/>`});
+ /* near leg striding forward, foot planted */
+ const legN=S(SM([[102,96],[118,90],[132,98],[130,114],[116,122],[104,114]]),C,{g:"dzR",s:.8,x:SCL(98,88,134,124,5.5,.2)})+S(TUBE([[112,116,7.5],[100,128,6],[96,140,4.8]]),C,{s:.5})+
+  S("M90 138C96 136 102 138 104 142C104 148 102 152 98 152L76 152C72 152 72 147 76 146L88 145Z",C,{s:.4})+CLAW(76,151,2,.9)+CLAW(83,152,-4,.9)+CLAW(90,152,-8,.9);
+ const back=O2(SPIKE(80,78,-20,8,7)+SPIKE(94,74,-6,9,7)+SPIKE(110,74,8,9,7)+SPIKE(124,80,22,8,7));
+ const arm=S(TUBE([[84,98,5.5],[76,110,4.6],[66,108,4]]),C,{s:.4})+CLAW(64,106,-10,.8)+CLAW(64,110,-30,.8);
+ /* umbrella frill */
+ const ribs=[-160,-130,-100,-70,-40,-10,20,50];
+ const frD=(()=>{let a=[];ribs.forEach((d,i)=>{const t=d/57.3;a.push([n1(64+Math.cos(t)*40),n1(58+Math.sin(t)*40),1]);if(i<ribs.length-1){const t2=(d+15)/57.3;a.push([n1(64+Math.cos(t2)*33),n1(58+Math.sin(t2)*33)])}});return SM(a.concat([[74,86],[54,84]]))})();
+ const frill=WS(O3(`<circle cx="64" cy="56" r="46" fill="${H}" opacity=".45" filter="url(#dzb)"/>`)+S(frD,W,{s:1.2,x:`<circle cx="64" cy="58" r="32" fill="none" stroke="${H}" stroke-width="6" opacity=".9"/><circle cx="64" cy="58" r="22" fill="none" stroke="${C}" stroke-width="4" opacity=".55"/>`+
+  LN(ribs.map(d=>{const t=d/57.3;return `M64 60L${n1(64+Math.cos(t)*39)} ${n1(58+Math.sin(t)*39)}`}).join(""),2,.45)+O3(`<circle cx="64" cy="58" r="32" fill="none" stroke="#fff" stroke-width="2" opacity=".9"/>`)}),64,62);
+ const neck=S(TUBE([[50,66,10],[64,78,11.5],[80,88,13]]),C,{x:SCL(36,56,90,100,5.5,.2)+FL("M30 70C44 74 56 84 66 100H30Z",B,.9)+AO("M38 64C48 70 58 72 68 68L68 56L38 56Z",.4)});
+ /* head, open hissing jaw */
+ const jaw=S(SM([[52,66],[42,76],[26,80],[12,78],[8,74,1],[20,72],[38,68]]),C,{s:.5,x:FL("M0 74C20 76 40 74 56 66V92H0Z",B)});
+ const mouth=FL("M10 64C24 66 38 66 52 62L52 68C38 72 24 74 10 74Z","#7a1218")+FL("M18 72C26 68 36 68 42 70C36 74 26 74 18 72Z","#e05a6a")+TOOTH(14,73,4,2.6,1)+TOOTH(24,73.4,4.4,2.8,1)+TOOTH(34,72,3.6,2.4,1);
+ const skull=S(SM([[6,60],[10,50],[24,44],[40,40],[54,42],[62,52],[58,62],[46,66],[28,66],[12,64]]),C,{s:.7,x:SCL(20,38,66,62,4.5,.22)+FL("M0 62C20 64 38 64 50 62L64 58V76H0Z",B,.95)+HL("M18 48C26 44 36 41 46 41",2,.5)});
+ const face=TOOTH(12,64,4.4,2.8)+TOOTH(22,64.6,5,3)+TOOTH(32,64.4,4,2.6)+NOSTRIL(11,52,-14,1)+O2(HN(40,42,46,28,7,3)+HN(50,44,60,32,7,-2));
+ const eye=O2(EY(40,52,6.2,-10,{bw:3.4}))+O1(EY(40,53,7,-8,{round:1,bw:2.4}));
+ return SH(110,62)+WS(wingF,100,80)+legF+armF+tail+WS(wingN,108,82)+torso+back+legN+frill+neck+arm+jaw+mouth+skull+face+eye};
+/* ---------- FUKURO : owl-griffin night dragon (mantled wings, facial disc, feathered legs) ---------- */
+ART.fukuro=()=>{
+ const wingF=FW([[84,72],[80,46],[84,24]],[[68,4],[82,-4],[98,-4],[112,4],[120,18],[120,34],[114,48],[104,58]],{far:1,np:3,band:"rgba(0,0,0,.18)"});
+ const wingN=FW([[108,80],[132,64],[152,50]],[[168,30],[184,38],[196,54],[198,72],[190,88],[178,100],[162,108],[146,112],[130,114]],{np:4,band:"rgba(0,0,0,.18)"});
+ const tail=[[126,124,162,150],[124,124,170,140],[122,122,170,128]].map(([a,b,c,d])=>FEA([a,b],[c,d],7,W,{x:`<path d="M130 120L180 160M140 120L190 160M150 118L200 158" stroke="#000" stroke-opacity=".18" stroke-width="3"/>`})).join("");
+ const legF=TALON(0,0,86,132,82,150,{far:1,k:1.35}),legN=TALON(0,0,108,134,106,151,{k:1.4});
+ const pants=(x,far)=>PANTS(x,114,x-2,136,13,{far});
+ const torsoD=SM([[56,98],[62,76],[84,64],[110,70],[126,92],[128,116],[118,134],[96,140],[74,134],[60,118]]);
+ const vb=[];for(let y=86;y<136;y+=8)for(let x=60+(y%16?4:0);x<96;x+=9)vb.push(`M${x-3} ${y}l3 3l3 -3`);
+ const torso=S(torsoD,C,{s:1.4,x:FTX(60,60,130,140,7,.24)+S(SM([[44,80],[64,74],[82,86],[90,112],[94,146],[44,146]]),B,{g:"dzB",w:0,so:.1,x:LN(vb.join(""),1.6,.45)})+AO("M60 72C76 80 96 80 110 72L110 60L60 60Z",.45)});
+ /* head */
+ const tufts=HN(30,24,14,0,12,6,{rg:2})+HN(76,22,94,0,12,-6,{rg:2})+O2(HN(40,18,34,2,8,3)+HN(66,16,72,0,8,-3));
+ const halo=O3(`<circle cx="54" cy="42" r="40" fill="${H}" opacity=".35" filter="url(#dzb)"/>`+S("M20 6C6 26 12 56 36 68C14 60 4 36 20 6Z",H,{g:"dzH",w:1.6})+SPARK(12,10,5)+SPARK(96,6,4)+SPARK(100,64,3));
+ const headD=SM([[22,44],[24,26],[38,14],[54,12],[72,14],[86,28],[86,46],[78,60],[54,68],[32,62]]);
+ const disc=(x,s)=>S(SM([[x-15,40],[x-12,28],[x,24],[x+12,28],[x+15,40],[x+12,52],[x,56],[x-12,52]]),B,{g:"dzB",w:1.8,so:.08,x:LN([0,45,90,135,180,225,270,315].map(a=>{const t=a/57.3;return `M${n1(x+Math.cos(t)*9)} ${n1(40+Math.sin(t)*9)}L${n1(x+Math.cos(t)*15)} ${n1(40+Math.sin(t)*15)}`}).join(""),1.2,.3)});
+ const head=S(headD,C,{g:"dzR",s:1,x:FTX(20,10,90,40,6,.25)+HL("M34 20C44 14 56 13 66 15",2.4,.5)})+disc(41,-1)+disc(67,1)+
+  S("M47 48L54 62L61 48Q54 44 47 48Z",H,{g:"dzH",w:1.6})+TOOTH(51,57,3.4,2.2)+TOOTH(57,57,3.4,2.2)+
+  `<path d="M28 30Q40 24 52 34M80 30Q68 24 56 34" fill="none" stroke="${D}" stroke-width="3" stroke-linecap="round"/>`;
+ const eyes=EY(41,41,8.2,8,{round:1,nobrow:1})+EY(67,41,8.2,-8,{round:1,nobrow:1});
+ return SH(104,62)+halo+WS(wingF,84,72)+tail+legF+WS(wingN,108,80)+torso+pants(90,1)+legN+pants(110,0)+tufts+head+eyes};
+/* ---------- KUJAKU : peacock phoenix-dragon (great eyed train, swan neck, plume crest) ---------- */
+ART.kujaku=()=>{
+ const OC=(x,y,r,a,s=1)=>`<g transform="translate(${n1(x)} ${n1(y)}) rotate(${n1(a)}) scale(${s})"><ellipse rx="7.2" ry="9" fill="${H}" stroke="${D}" stroke-width="1.3"/><ellipse rx="4.6" ry="6" cy="1" fill="${C}"/><ellipse rx="2.4" ry="3.2" cy="1.6" fill="#10203a"/><ellipse rx="1.4" ry="2" cx="-1.4" cy="-2" fill="#fff" opacity=".85"/></g>`;
+ const fan=(n,R,a0,a1)=>{let s="";for(let i=0;i<n;i++){const a=(a0+i*(a1-a0)/(n-1))/57.3,cx=124,cy=106,x=cx+Math.cos(a)*R,y=cy+Math.sin(a)*R,b=[cx+Math.cos(a)*16,cy+Math.sin(a)*16];
+  s+=FEA(b,[x+Math.cos(a)*8,y+Math.sin(a)*8],10,W,{w:1.6,x:FTX(0,0,200,160,5,.18)})+OC(x,y,0,a*57.3+90)}return s};
+ const train=WS(O2(fan(11,66,-176,-4))+O1(fan(7,50,-160,-20)),124,106)+O3(WS(GLOW("M50 104C56 30 130 10 196 60C170 60 140 80 124 106Z",.45),124,106)+SPARK(60,30,4)+SPARK(190,40,4));
+ const legF=TALON(0,0,98,128,94,150,{far:1}),legN=TALON(0,0,112,130,110,151,{k:1.1});
+ const torsoD=SM([[72,104],[80,86],[100,80],[122,88],[134,106],[130,124],[114,134],[94,134],[78,124]]);
+ const torso=S(torsoD,C,{s:1.2,x:FTX(70,76,136,136,6,.26)+S("M60 96C76 100 86 112 92 140H60Z",B,{g:"dzB",w:0,so:.1})});
+ const wing=S(SM([[92,92],[112,86],[134,96],[150,116],[158,132,1],[140,126],[124,128],[104,120],[92,106]]),C,{s:.8,x:FTX(88,82,150,130,6,.3)+[0,1,2,3].map(i=>LN(`M${118+i*6} ${110+i*2}L${150+i*2} ${128+i}`,1.2,.4)).join("")})+
+  S(SM([[118,110],[140,112],[156,128],[160,138,1],[142,132],[124,126]]),W,{g:"dzW",w:1.8,x:LN("M126 118L156 134M130 124L154 136",1,.4)});
+ const nA=[[50,40,7],[46,56,8],[56,72,9],[76,88,12]];
+ const neck=S(TUBE(nA),C,{x:FTX(30,30,90,100,5,.28)+FL("M30 46C40 52 44 66 56 78L64 96H30Z",B,.9)+AO("M38 40C46 48 56 50 64 46L64 36L38 36Z",.45)+HL("M54 44C50 54 52 64 60 72",2,.35)});
+ const crest=O1(LN("M50 22L48 12M54 21L56 11",1.6,1)+OC(48,10,0,-10,.45)+OC(56,9,0,10,.45))+
+  O2(LN("M48 22L38 4M52 21L52 0M56 22L66 4",1.6,1)+OC(38,4,0,-30,.55)+OC(52,0,0,0,.6)+OC(66,4,0,30,.55))+O3(GLOW("M36 18C26 -4 52 -12 56 2C62 -12 86 -2 72 20Z",.7));
+ const headD=SM([[14,36],[18,28],[30,24],[44,18],[56,20],[64,30],[62,40],[52,46],[34,46],[20,44]]);
+ const head=S(headD,C,{s:.7,x:FTX(26,16,66,44,4.5,.22)+FL("M8 38C22 40 36 41 50 39L66 34V56H8Z",B,.95)+`<path d="M38 30Q48 30 56 36" stroke="${B}" stroke-width="3" fill="none" stroke-linecap="round"/>`+HL("M24 28C32 23 40 20 48 20",1.8,.5)});
+ const beak=S("M16 30C8 30 3 35 3 41C7 39 11 39 15 40Z",H,{g:"dzH",w:1.7});
+ const face=LN("M14 40C26 42 38 42 50 40",2,1)+TOOTH(24,41.6,3.6,2.6)+NOSTRIL(12,33,-20,.8)+HN(56,26,78,18,6,-3,{far:1})+HN(52,24,74,12,7,-4,{rg:2});
+ const eye=O2(EY(40,32,5.8,-8,{bw:3}))+O1(EY(40,33,6.8,-6,{round:1,bw:2.4}));
+ return SH(110,56)+train+legF+torso+legN+wing+neck+crest+head+beak+face+eye};
+/* ---------- OUMU : macaw garuda-dragon (wings raised high, huge hooked beak, streaming tail) ---------- */
+ART.oumu=()=>{
+ const wingF=FW([[94,78],[86,50],[84,24]],[[66,8],[74,-6],[90,-12],[106,-8],[116,4],[120,20],[116,36],[108,50]],{far:1,np:3,tip:3,c2:H});
+ const wingN=FW([[108,82],[124,54],[136,26]],[[136,-6],[154,-8],[168,0],[180,14],[186,32],[186,50],[178,66],[164,80],[148,90]],{np:4,tip:3,c2:H});
+ const tl=[[[124,118],[196,158],8,W],[[126,118],[200,146],8,C],[[124,120],[184,160],7,H],[[126,116],[198,132],7,W]];
+ const tail=tl.map(([b,t,w,c])=>FEA(b,t,w,c)).join("")+O2(FEA([126,116],[200,120],6,C)+FEA([122,122],[170,160],6,C));
+ const legF=TALON(0,0,90,130,86,150,{far:1,c:"#7a7a8a",cl:"#2a2a30"}),legN=TALON(0,0,110,132,108,151,{k:1.2,c:"#7a7a8a",cl:"#2a2a30"});
+ const torsoD=SM([[60,96],[66,76],[86,66],[110,72],[126,94],[128,116],[116,134],[94,138],[74,132],[62,116]]);
+ const torso=S(torsoD,C,{s:1.4,x:FTX(60,60,130,140,6.5,.26)+S("M48 84C66 86 80 100 86 120L92 146H48Z",H,{g:"dzB",w:0,so:.12,x:FTX(48,84,100,146,6,.25)})+AO("M62 70C76 78 96 78 110 70L110 60L62 60Z",.45)});
+ const thigh=PANTS(92,116,90,130,11,{far:1})+PANTS(112,116,110,134,12);
+ const crest=S("M54 24L46 6L60 16L64 0L72 16L84 4L80 26Z",H,{g:"dzH",w:2})+O2(S("M64 22L76 -2L80 16L96 6L86 28Z",W,{g:"dzW",w:2}))+O3(GLOW("M46 26L40 -6L66 6L92 -8L98 32Z",.7)+SPARK(40,-2,4)+SPARK(100,10,3.5));
+ const headD=SM([[22,40],[26,26],[40,18],[58,16],[76,24],[82,40],[76,54],[58,62],[38,62],[26,54]]);
+ const head=S(headD,C,{g:"dzR",s:1,x:FTX(40,14,86,60,5,.25)+S(EL(46,40,13,12),B,{g:"dzB",w:0,so:0,x:LN("M38 34l-3 -2M38 40l-4 0M38 46l-3 2M42 52l-2 3",1.2,.45)})+HL("M36 22C46 17 58 16 68 18",2.2,.5)});
+ const beak=S("M32 28C14 22 2 36 4 52C6 60 14 62 20 56C14 52 14 44 22 40C28 40 32 44 34 48C36 40 36 32 32 28Z",H,{g:"dzH",w:2.2,x:HL("M10 34C14 28 20 26 26 27",2,.6)})+
+  S("M20 56C22 63 30 65 37 58C35 54 33 50 35 47C28 45 22 50 20 56Z",D,{g:"dzH",w:1.6,ho:.2})+TOOTH(24,52,3.6,2.4)+NOSTRIL(26,32,-30,.8)+
+  HN(70,26,92,16,7,-3,{far:1})+HN(64,22,88,8,8,-4,{rg:2});
+ const eye=O2(EY(48,38,7,-6,{bw:3.2}))+O1(EY(48,39,8,-6,{round:1,bw:2.6}));
+ return SH(104,60)+WS(wingF,94,78)+tail+legF+WS(wingN,108,82)+torso+legN+thigh+crest+head+beak+eye};
+/* ---------- SAICHO : hornbill sun-dragon (striding, casque horn, swept wings, banded tail) ---------- */
+ART.saicho=()=>{
+ const sun=O3(`<circle cx="44" cy="30" r="34" fill="${H}" opacity=".45" filter="url(#dzb)"/>`+[0,30,60,90,120,150,180,210,240,270,300,330].map(a=>{const t=a/57.3;return `<path d="M${n1(44+Math.cos(t)*30)} ${n1(30+Math.sin(t)*30)}L${n1(44+Math.cos(t+.08)*42)} ${n1(30+Math.sin(t+.08)*42)}L${n1(44+Math.cos(t+.16)*30)} ${n1(30+Math.sin(t+.16)*30)}Z" fill="${H}" opacity=".85"/>`}).join(""));
+ const wingF=FW([[90,72],[100,50],[116,32]],[[124,8],[140,4],[156,10],[166,22],[166,36],[156,48],[140,58],[122,66]],{far:1,np:3,band:B});
+ const wingN=FW([[102,80],[126,70],[150,62]],[[176,48],[190,54],[200,66],[200,80],[192,92],[178,100],[162,104],[146,106],[130,104]],{np:4,band:B,bend:.08});
+ const tl=[[[128,108],[198,124],8],[[128,110],[196,138],8],[[126,112],[186,148],7]];
+ const tail=tl.map(([b,t,w])=>FEA(b,t,w,B,{x:`<path d="M150 90L178 170M158 90L186 170" stroke="${C}" stroke-width="9"/>`})).join("")+O2(FEA([128,106],[194,110],6,B,{x:`<path d="M154 90L182 170" stroke="${C}" stroke-width="9"/>`}));
+ /* striding legs: near planted forward, far lifted back */
+ const legF=S(TUBE([[112,124,3.6],[124,140,3],[132,146,2.6]]),H,{far:1})+S(TUBE([[132,146,2.4],[122,149,2]]),H,{far:1})+S(TUBE([[132,146,2.4],[140,151,2]]),H,{far:1})+CLAW(121,149.6,10,.7,"#3a2c2a")+CLAW(142,151.6,170,.7,"#3a2c2a");
+ const legN=TALON(0,0,94,128,84,151,{k:1.15});
+ const torsoD=SM([[58,92],[68,76],[90,70],[114,76],[132,94],[134,112],[120,126],[96,128],[74,120],[62,106]]);
+ const torso=S(torsoD,C,{s:1.3,x:FTX(56,66,136,130,6.5,.13,"#fff")+S("M54 98C70 104 84 114 96 132H54Z",B,{g:"dzB",w:0,so:.1})+AO("M62 72C76 80 94 80 106 72L106 62L62 62Z",.45)});
+ const thigh=PANTS(116,110,114,124,10,{far:1,t:.13,tc:"#fff"})+PANTS(96,108,94,130,12,{t:.13,tc:"#fff"});
+ const nA=[[56,52,10],[60,66,11],[70,80,13]];
+ const neck=S(TUBE(nA),C,{x:FTX(40,40,90,96,5,.13,"#fff")+FL("M34 58C46 62 54 72 62 92H34Z",B,.95)+AO("M44 50C54 58 64 58 76 52L76 40L44 40Z",.45)});
+ const headD=SM([[34,46],[38,34],[50,26],[64,26],[74,34],[76,48],[68,58],[52,62],[40,58]]);
+ const head=S(headD,C,{g:"dzR",s:.8,x:FTX(36,24,80,60,5,.13,"#fff")+S(EL(58,42,9.5),B,{g:"dzR",w:0,so:0})});
+ const bill=S("M40 32C24 30 8 38 0 52C14 50 28 48 42 50Z",H,{g:"dzH",w:2.2,x:HL("M8 46C16 40 26 36 36 35",1.8,.6)})+S("M4 54C16 52 30 52 42 52C42 58 36 60 28 60C18 60 10 58 4 54Z",H,{g:"dzH",w:2})+LN("M2 53L42 51",2,1)+
+  TOOTH(16,53.6,3.6,2.4)+TOOTH(26,53.2,3.6,2.4)+NOSTRIL(32,36,-10,.8);
+ const casque=O1(S("M38 32C36 24 44 18 56 20C62 22 64 26 62 30C54 26 46 28 40 34Z",H,{g:"dzH",w:2}))+
+  O2(S("M38 32C32 16 44 4 62 6C76 8 80 16 78 22C68 16 52 18 42 34Z",H,{g:"dzH",w:2.2,x:LN("M46 22C54 16 64 14 74 16M44 28C52 22 62 20 72 22",1.3,.4)+HL("M44 16C50 10 58 8 66 9",2,.6)}));
+ const eye=O2(EY(58,42,6.2,-8,{bw:3}))+O1(EY(58,43,7,-6,{round:1,bw:2.4}));
+ return SH(108,64)+sun+WS(wingF,90,72)+tail+legF+WS(wingN,102,78)+torso+legN+thigh+neck+head+bill+casque+eye};
+/* species: id, name, category, drawFn, opts, palette [c body, d outline, b belly, w wing, h accent, e eye] */
+const SPC=[
+["ruri","ルリオ","はちゅうるい",ART.ruri,0,["#2a6fd6","#0c2a66","#eef6ff","#ffdcae","#e8b64a","#ff8a1e"]],
+["hapa","ハッパ","はちゅうるい",ART.hapa,0,["#3aa45e","#124a2a","#eaf5b0","#7ccf4a","#ff86b4","#ffd23a"]],
+["raiko","ライコ","とり",ART.raiko,0,["#3a4ab8","#121848","#e8ecff","#5a72e6","#ffd21e","#7ae8ff"]],
+["homura","ホムラ","はちゅうるい",ART.homura,0,["#d0342a","#5a0e0e","#f6c98a","#7a1e3a","#ffb02a","#ffe14a"]],
+["wani","ワニゴン","はちゅうるい",ART.wani,0,["#4a8040","#17331a","#dfe6a8","#6a9a52","#d9cf7a","#ffe14a"]],
+["igura","イグラ","はちゅうるい",ART.igura,0,["#2aa198","#0b4a46","#d8f5b0","#3fc0b0","#ffb02a","#ff6a3a"]],
+["erima","エリマキ","はちゅうるい",ART.erima,0,["#d08a3a","#4a2a0e","#f7e2b0","#e05a2a","#ffd24a","#ffcf3a"]],
+["yamo","ヤモリン","はちゅうるい",ART.yamo,0,["#8fc24a","#2e4a12","#f7f1c0","#c9b8ff","#ff7aa8","#ffb21e"]],
+["komo","コモドン","はちゅうるい",ART.komo,0,["#7a6a4a","#2a2014","#d9c79a","#5a4a36","#ffcf3a","#c6ff3a"]],
+["tsuno","ツノトカ","はちゅうるい",ART.tsuno,0,["#d0843a","#4a2410","#f7e7c4","#9a5a2a","#f2deb0","#ffd23a"]],
+["koburan","コブラン","はちゅうるい",ART.koburan,0,["#2a6a5a","#0a2420","#f3e3a0","#c8a02a","#ffcf3a","#ff5a3a"]],
+["kame","カメゴン","はちゅうるい",ART.kame,0,["#4a8a7a","#14302a","#e8e0a0","#6a5a3a","#d9b45a","#ffd23a"]],
+["fukuro","フクロン","とり",ART.fukuro,0,["#8a6a4e","#2e1e12","#f5ead2","#6a4c34","#ffcf3a","#ffb21e"]],
+["kujaku","クジャッカ","とり",ART.kujaku,0,["#1a6ec8","#0a2e5a","#d8f5f0","#2aa88a","#ffd24a","#ff6a3a"]],
+["oumu","オウムラ","とり",ART.oumu,0,["#e5483f","#5a1010","#fff3b0","#2f72d6","#ffcf3a","#ffd23a"]],
+["saicho","サイチョ","とり",ART.saicho,0,["#2a2a36","#08080e","#f4f4f0","#3c3c4c","#f2b705","#ff5a3a"]]].filter(s=>s[3]);
+const SPD={};let sy=DEFS;
+SPC.forEach(s=>{SPD[s[0]]=s[5];sy+=`<symbol id="sp-${s[0]}" viewBox="0 0 200 160" overflow="visible">${s[3](s[4])}</symbol>`});
+$("#syms").innerHTML=sy;
+return {SPC,SPD};
+})();
+
+$("#zk").innerHTML=["はちゅうるい","とり"].map(c=>`<h2>${c}がたのドラゴン</h2><div class="zk">${SPC.filter(s=>s[2]===c).map(s=>`<div class="pick"><svg class="dg st1" data-sp="${s[0]}"></svg>${s[1]}</div>`).join("")}</div>`).join("");
+const BP={b1:["#4a3a63","#1d1230","#8a6aa8","#2f2150","#ffb347","#ff3b30"],b2:["#a52b32","#4a0e14","#e8a070","#5a1420","#ffd36a","#ffe14a"],b3:["#1c1432","#07030f","#5a3a8a","#2a1450","#ff4b3a","#ff2a2a"]};
+document.querySelectorAll("svg[data-sp]").forEach(s=>{const p=BP[s.dataset.pal]||SPD[s.dataset.sp];["c","d","b","w","h","e"].forEach((k,i)=>p[i]&&s.style.setProperty("--"+k,p[i]));s.innerHTML=`<use href="#sp-${s.dataset.sp}"/>`});
+/* ===== Japan rail map ===== */
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const PJ=(lo,la)=>[(lo-128.5)*48.6,(45.8-la)*60];
+const MAPW=860,MAPH=900;
+/* ---- stations: id,name,lon,lat,tier(1=hub,2=major,3=other) ---- */
+const ST={},STL=[];
+`tokyo,東京,139.767,35.681,1
+shinagawa,品川,139.739,35.629,2
+shinyokohama,新横浜,139.617,35.507,2
+odawara,小田原,139.155,35.257,3
+atami,熱海,139.078,35.104,3
+mishima,三島,138.911,35.127,3
+shinfuji,新富士,138.663,35.142,3
+shizuoka,静岡,138.389,34.972,2
+kakegawa,掛川,138.014,34.769,3
+hamamatsu,浜松,137.735,34.704,2
+toyohashi,豊橋,137.382,34.763,3
+mikawaanjo,三河安城,137.062,34.968,3
+nagoya,名古屋,136.882,35.171,1
+gifuhashima,岐阜羽島,136.703,35.316,3
+maibara,米原,136.290,35.314,3
+kyoto,京都,135.759,34.986,1
+shinosaka,新大阪,135.500,34.734,1
+shinkobe,新神戸,135.196,34.707,3
+nishiakashi,西明石,135.012,34.665,3
+himeji,姫路,134.690,34.826,2
+aioi,相生,134.465,34.806,3
+okayama,岡山,133.917,34.666,1
+shinkurashiki,新倉敷,133.700,34.580,3
+fukuyama,福山,133.363,34.489,2
+shinonomichi,新尾道,133.190,34.455,3
+mihara,三原,133.080,34.397,3
+higashihiroshima,東広島,132.744,34.431,3
+hiroshima,広島,132.475,34.398,1
+shiniwakuni,新岩国,132.180,34.200,3
+tokuyama,徳山,131.806,34.050,3
+shinyamaguchi,新山口,131.401,34.093,2
+asa,厚狭,131.167,34.015,3
+shinshimonoseki,新下関,130.962,34.004,3
+kokura,小倉,130.883,33.886,2
+hakata,博多,130.421,33.590,1
+shintosu,新鳥栖,130.516,33.370,3
+kurume,久留米,130.520,33.317,3
+chikugofunagoya,筑後船小屋,130.490,33.200,3
+shinomuta,新大牟田,130.470,33.030,3
+shintamana,新玉名,130.550,32.930,3
+kumamoto,熊本,130.689,32.790,1
+shinyatsushiro,新八代,130.630,32.500,3
+shinminamata,新水俣,130.440,32.190,3
+izumi,出水,130.360,32.090,3
+satsumasendai,川内,130.200,31.820,3
+kagoshimachuo,鹿児島中央,130.542,31.584,1
+takeoonsen,武雄温泉,130.020,33.200,2
+ureshinoonsen,嬉野温泉,129.980,33.100,3
+shinomura,新大村,129.970,32.920,3
+isahaya,諫早,130.040,32.840,3
+nagasaki,長崎,129.869,32.752,1
+ueno,上野,139.777,35.713,2
+omiya,大宮,139.623,35.906,2
+oyama,小山,139.800,36.310,3
+utsunomiya,宇都宮,139.898,36.559,2
+nasushiobara,那須塩原,140.040,36.970,3
+shinshirakawa,新白河,140.220,37.130,3
+koriyama,郡山,140.380,37.398,2
+fukushima,福島,140.459,37.754,2
+shiroishizao,白石蔵王,140.620,38.000,3
+sendai,仙台,140.882,38.260,1
+furukawa,古川,140.940,38.570,3
+kurikomakogen,くりこま高原,141.020,38.780,3
+ichinoseki,一ノ関,141.130,38.930,2
+mizusawaesashi,水沢江刺,141.140,39.140,3
+kitakami,北上,141.140,39.290,3
+shinhanamaki,新花巻,141.120,39.400,3
+morioka,盛岡,141.136,39.702,1
+iwatenumakunai,いわて沼宮内,141.230,40.030,3
+ninohe,二戸,141.310,40.270,3
+hachinohe,八戸,141.420,40.510,2
+shichinohetowada,七戸十和田,141.190,40.720,3
+shinaomori,新青森,140.693,40.827,1
+okutsugaruimabetsu,奥津軽いまべつ,140.460,41.190,3
+kikonai,木古内,140.430,41.680,3
+shinhakodatehokuto,新函館北斗,140.650,41.900,1
+kumagaya,熊谷,139.380,36.140,3
+honjowaseda,本庄早稲田,139.180,36.220,3
+takasaki,高崎,139.012,36.322,2
+jomokogen,上毛高原,139.050,36.680,3
+echigoyuzawa,越後湯沢,138.810,36.930,2
+urasa,浦佐,138.880,37.130,3
+nagaoka,長岡,138.850,37.450,2
+tsubamesanjo,燕三条,138.930,37.660,3
+niigata,新潟,139.062,37.912,1
+annakaharuna,安中榛名,138.840,36.340,3
+karuizawa,軽井沢,138.630,36.340,2
+sakudaira,佐久平,138.480,36.280,3
+ueda,上田,138.250,36.390,3
+nagano,長野,138.190,36.643,1
+iiyama,飯山,138.370,36.850,3
+joetsumyoko,上越妙高,138.250,37.120,3
+itoigawa,糸魚川,137.860,37.040,3
+kurobeunazuki,黒部宇奈月温泉,137.450,36.880,3
+toyama,富山,137.213,36.701,1
+shintakaoka,新高岡,136.990,36.720,3
+kanazawa,金沢,136.644,36.578,1
+komatsu,小松,136.450,36.400,3
+kagaonsen,加賀温泉,136.300,36.300,3
+awaraonsen,あわら温泉,136.230,36.220,3
+fukui,福井,136.220,36.060,2
+echizentakefu,越前たけふ,136.150,35.900,3
+tsuruga,敦賀,136.070,35.650,2
+shizukuishi,雫石,140.980,39.690,3
+tazawako,田沢湖,140.720,39.700,3
+kakunodate,角館,140.570,39.600,3
+omagari,大曲,140.480,39.460,3
+akita,秋田,140.130,39.720,1
+yonezawa,米沢,140.120,37.910,3
+takahata,高畠,140.190,38.000,3
+akayu,赤湯,140.160,38.060,3
+kaminoyama,かみのやま温泉,140.270,38.150,3
+yamagata,山形,140.327,38.248,2
+tendo,天童,140.370,38.360,3
+sakuramboHigashine,さくらんぼ東根,140.380,38.430,3
+murayama,村山,140.390,38.480,3
+oishida,大石田,140.370,38.590,3
+shinjo,新庄,140.310,38.760,2
+mito,水戸,140.470,36.380,2
+hitachi,日立,140.650,36.590,3
+iwaki,いわき,140.890,37.050,3
+haranomachi,原ノ町,140.960,37.640,3
+osaka,大阪,135.496,34.702,1
+omiimazu,近江今津,136.030,35.390,3
+gifu,岐阜,136.760,35.410,3
+nakatsu,中津,131.190,33.600,3
+usa,宇佐,131.350,33.530,3
+beppu,別府,131.500,33.280,3
+oita,大分,131.606,33.233,2
+kurashiki,倉敷,133.770,34.600,3
+niimi,新見,133.470,34.980,3
+yonago,米子,133.330,35.430,2
+matsue,松江,133.070,35.470,2
+izumoshi,出雲市,132.760,35.360,2
+utazu,宇多津,133.820,34.310,3
+niihama,新居浜,133.280,33.960,3
+imabari,今治,133.000,34.070,3
+matsuyama,松山,132.766,33.835,2
+wakayama,和歌山,135.190,34.230,2
+shirahama,白浜,135.350,33.680,3
+shingu,新宮,135.990,33.730,3
+kansaiairport,関西空港,135.250,34.435,3
+sapporo,札幌,141.350,43.070,1
+iwamizawa,岩見沢,141.760,43.200,3
+takikawa,滝川,141.910,43.560,3
+asahikawa,旭川,142.360,43.760,2`.split("\n").forEach(l=>{const [id,n,lo,la,t]=l.split(",");const [x,y]=PJ(+lo,+la);const s={id,n,x,y,t:+t,ln:[]};ST[id]=s;STL.push(s)});
+/* ---- lines ---- */
+const LN={},LNL=[];
+function defL(id,n,c,v,s,conv){const ids=[],vv=[];let cur=v;s.split(" ").forEach(t=>{const [i,x]=t.split(":");if(x)cur=+x;if(!ST[i])throw new Error("no station "+i);ids.push(i);vv.push(cur)});
+ const L={id,n,c,ids,vv,conv:!!conv};LN[id]=L;LNL.push(L);ids.forEach(i=>ST[i].ln.push(L))}
+defL("hitachi","常磐線（特急）","#8a8f9c",130,"shinagawa ueno mito hitachi iwaki haranomachi sendai",1);
+defL("thunder","湖西線・北陸本線（特急）","#8a8f9c",130,"osaka kyoto omiimazu tsuruga",1);
+defL("shirasagi","東海道本線・北陸本線（特急）","#8a8f9c",130,"nagoya gifu maibara tsuruga",1);
+defL("sonic","鹿児島本線・日豊本線（特急）","#8a8f9c",130,"hakata kokura nakatsu usa beppu oita",1);
+defL("yakumo","伯備線（特急）","#8a8f9c",120,"okayama kurashiki niimi yonago matsue izumoshi",1);
+defL("shiokaze","予讃線（特急）","#8a8f9c",130,"okayama utazu niihama imabari matsuyama",1);
+defL("kuroshio","紀勢本線（特急）","#8a8f9c",120,"shinosaka wakayama shirahama shingu",1);
+defL("haruka","関西空港線（特急）","#8a8f9c",120,"kyoto shinosaka kansaiairport",1);
+defL("kamui","函館本線（特急）","#8a8f9c",130,"sapporo iwamizawa takikawa asahikawa",1);
+defL("tokaido","東海道新幹線","#2563d6",285,"tokyo shinagawa:100 shinyokohama:150 odawara:285 atami mishima shinfuji shizuoka kakegawa hamamatsu toyohashi mikawaanjo nagoya gifuhashima maibara kyoto shinosaka");
+defL("sanyo","山陽新幹線","#12a4c9",275,"shinosaka shinkobe nishiakashi himeji aioi:300 okayama shinkurashiki fukuyama shinonomichi mihara higashihiroshima hiroshima shiniwakuni tokuyama shinyamaguchi asa shinshimonoseki kokura hakata");
+defL("kyushu","九州新幹線","#d8262f",260,"hakata shintosu kurume chikugofunagoya shinomuta shintamana kumamoto shinyatsushiro shinminamata izumi satsumasendai kagoshimachuo");
+defL("nishikyushu","西九州新幹線","#f08a1c",260,"takeoonsen ureshinoonsen shinomura isahaya nagasaki");
+defL("tohoku","東北新幹線","#1f9d55",110,"tokyo ueno omiya:110 oyama:275 utsunomiya nasushiobara:320 shinshirakawa koriyama fukushima shiroishizao sendai furukawa kurikomakogen ichinoseki mizusawaesashi kitakami shinhanamaki morioka iwatenumakunai:260 ninohe hachinohe shichinohetowada shinaomori");
+defL("hokkaido","北海道新幹線","#7a3fb0",260,"shinaomori okutsugaruimabetsu kikonai:160 shinhakodatehokuto:260");
+defL("joetsu","上越新幹線","#13a89e",275,"omiya kumagaya honjowaseda takasaki jomokogen:160 echigoyuzawa:275 urasa nagaoka tsubamesanjo niigata");
+defL("hokuriku","北陸新幹線","#b5702e",260,"takasaki annakaharuna karuizawa sakudaira ueda nagano iiyama joetsumyoko itoigawa kurobeunazuki toyama shintakaoka kanazawa komatsu kagaonsen awaraonsen fukui echizentakefu tsuruga");
+defL("akita","秋田新幹線（こまち）","#e0457b",130,"morioka shizukuishi tazawako kakunodate omagari akita");
+defL("yamagata","山形新幹線（つばさ）","#d98a00",130,"fukushima yonezawa takahata akayu kaminoyama yamagata tendo sakuramboHigashine murayama oishida shinjo");
+/* ---- coast (lon,lat) ---- */
+const COAST=[
+/* Honshu */[[130.93,33.96],[131.1,34.2],[131.4,34.42],[131.9,34.7],[132.08,34.9],[132.55,35.28],[132.9,35.5],[133.2,35.55],[133.4,35.53],[133.9,35.52],[134.3,35.55],[134.8,35.65],[135.2,35.78],[135.35,35.55],[135.8,35.5],[136.08,35.67],[135.98,35.98],[136.15,36.25],[136.35,36.35],[136.6,36.62],[136.75,36.9],[136.75,37.2],[136.9,37.4],[137.35,37.52],[137.3,37.25],[137.0,37.05],[137.1,36.8],[137.4,36.83],[137.86,37.05],[138.25,37.18],[138.55,37.37],[139.05,37.95],[139.45,38.22],[139.75,38.75],[139.83,38.92],[140.05,39.38],[139.7,39.95],[140.0,40.2],[139.9,40.65],[140.15,41.05],[140.2,41.2],[140.35,41.25],[140.6,41.2],[140.75,40.83],[140.95,40.9],[141.05,41.15],[140.92,41.45],[141.1,41.5],[141.35,41.4],[141.45,41.42],[141.4,41.1],[141.55,40.52],[141.95,39.65],[141.9,39.27],[141.6,38.9],[141.5,38.3],[141.0,38.25],[141.0,37.8],[141.0,36.9],[140.8,36.8],[140.6,36.3],[140.87,35.73],[140.4,35.4],[140.2,35.15],[139.88,34.9],[139.83,34.97],[139.8,35.3],[139.9,35.38],[140.1,35.6],[139.9,35.65],[139.8,35.62],[139.65,35.45],[139.67,35.28],[139.6,35.13],[139.5,35.3],[139.15,35.2],[139.08,35.1],[139.13,34.97],[138.85,34.6],[138.95,34.67],[138.78,34.92],[138.85,35.1],[138.5,35.0],[138.22,34.6],[137.8,34.65],[137.55,34.65],[137.0,34.6],[136.9,34.7],[136.85,35.05],[136.65,34.95],[136.5,34.7],[136.9,34.28],[136.1,33.9],[135.97,33.72],[135.77,33.47],[135.35,33.68],[135.15,34.22],[135.2,34.43],[135.4,34.65],[135.2,34.68],[135.0,34.65],[134.7,34.77],[133.95,34.55],[133.7,34.5],[133.4,34.45],[133.2,34.4],[132.45,34.35],[132.2,34.15],[131.8,33.98],[131.25,33.93]],
+/* Hokkaido */[[140.1,41.42],[140.72,41.77],[140.95,42.0],[141.0,42.3],[141.6,42.6],[142.4,42.3],[143.25,41.93],[143.4,42.7],[144.4,42.95],[145.6,43.3],[145.8,43.38],[145.2,44.0],[145.35,44.35],[144.3,44.0],[143.35,44.35],[141.95,45.52],[141.65,45.3],[141.7,44.9],[141.65,43.95],[141.35,43.2],[141.0,43.2],[140.35,43.35],[140.5,42.98],[140.2,42.8],[139.85,42.45],[140.1,41.9]],
+/* Kyushu */[[130.9,33.95],[131.2,33.62],[131.7,33.65],[131.5,33.3],[131.65,33.2],[131.9,32.95],[131.7,32.6],[131.45,31.9],[131.35,31.38],[131.1,31.45],[130.8,31.2],[130.66,31.0],[130.65,31.3],[130.55,31.6],[130.65,31.7],[130.2,31.25],[130.15,31.4],[130.15,31.85],[130.2,32.0],[130.4,32.2],[130.55,32.5],[130.55,32.8],[130.4,32.75],[130.2,32.6],[130.4,33.0],[130.4,33.15],[130.2,33.1],[130.05,32.85],[129.85,32.7],[129.7,33.15],[129.55,33.35],[129.9,33.5],[130.35,33.65],[130.5,33.85]],
+/* Shikoku */[[134.6,34.2],[134.6,34.05],[134.2,33.25],[133.55,33.5],[133.02,32.72],[132.7,32.9],[132.5,33.2],[132.0,33.35],[132.4,33.45],[132.7,33.85],[133.0,34.1],[133.3,34.0],[133.5,34.05],[134.05,34.35]],
+/* Awaji */[[135.02,34.6],[134.9,34.5],[134.72,34.28],[134.8,34.2],[135.05,34.3]],
+/* Sado */[[138.2,38.3],[138.5,38.33],[138.55,38.0],[138.25,37.8],[138.2,38.0]]];
+const BIWA=[[135.88,35.0],[135.93,35.15],[136.05,35.3],[136.05,35.45],[136.15,35.52],[136.2,35.4],[136.12,35.25],[136.03,35.1],[135.97,34.98]];
+const polyD=a=>"M"+a.map(([lo,la])=>PJ(lo,la).map(v=>v.toFixed(1)).join(" ")).join("L")+"Z";
+/* ---- train models ---- */
+const MD={
+ N700S:{op:"JR東海",cars:16,v:"285km/h（東海道）／300km/h（山陽）",deb:2020,body:"#fafcff",acc:"#1a57d6"},
+ N7008000:{op:"JR九州・JR西日本",cars:8,v:"300km/h（山陽）／260km/h（九州）",deb:2011,body:"#fafcff",acc:"#c8102e"},
+ K800:{op:"JR九州",cars:6,v:"260km/h",deb:2004,body:"#fafcff",acc:"#c8102e"},
+ N700SK:{op:"JR九州",cars:6,v:"260km/h",deb:2022,body:"#fafcff",acc:"#e07a1a"},
+ E5:{op:"JR東日本",cars:10,v:"320km/h（宇都宮〜盛岡）",deb:2011,body:"#1f9d55",acc:"#f06aa8"},
+ H5:{op:"JR北海道",cars:10,v:"320km/h（東北）／260km/h（北海道）",deb:2016,body:"#f4f0ff",acc:"#7a3fb0"},
+ E6:{op:"JR東日本",cars:7,v:"320km/h（盛岡まで）／130km/h（秋田線）",deb:2013,body:"#d3202a",acc:"#ffffff"},
+ E7:{op:"JR東日本",cars:12,v:"275km/h（上越）／260km/h（北陸）",deb:2014,body:"#fafcff",acc:"#b5702e"},
+ W7:{op:"JR西日本",cars:12,v:"260km/h（北陸）",deb:2015,body:"#fafcff",acc:"#2f6fd0"},
+ E8:{op:"JR東日本",cars:7,v:"300km/h（設計）／130km/h（山形線）",deb:2024,body:"#e9e2f4",acc:"#7a4ab0"},
+ E657:{op:"JR東日本",cars:10,v:"130km/h",deb:2012,body:"#fafcff",acc:"#d3202a"},
+ EX683:{op:"JR西日本",v:"130km/h",body:"#fafcff",acc:"#1a57d6"},
+ EX885:{op:"JR九州",v:"130km/h",body:"#fafcff",acc:"#1a57d6"},
+ EX273:{op:"JR西日本",cars:4,v:"120km/h",deb:2024,body:"#f3ecd6",acc:"#c1272d"},
+ EX8600:{op:"JR四国",v:"130km/h",body:"#fafcff",acc:"#2aa86a"},
+ EX287:{op:"JR西日本",v:"120km/h",body:"#fafcff",acc:"#2a63c4"},
+ EX271:{op:"JR西日本",cars:6,v:"120km/h",body:"#fafcff",acc:"#c1272d"},
+ EX789:{op:"JR北海道",v:"130km/h",body:"#fafcff",acc:"#2a8ad6"}};
+const NM={N7008000:"N700系8000番台",K800:"800系",N700SK:"N700S（8000番台）",EX683:"683系",EX885:"885系",EX273:"273系",EX8600:"8600系",EX287:"287系",EX271:"271系",EX789:"789系"};
+const R=(ln,a,b)=>[ln,a,b];
+/* unlock order: first 3 run from the start, then +1 per cleared stage */
+const SV=[
+ {nm:"のぞみ",m:"N700S",rt:[R("tokaido","tokyo","shinosaka"),R("sanyo","shinosaka","hakata")],stops:"tokyo shinagawa shinyokohama nagoya kyoto shinosaka shinkobe okayama hiroshima kokura hakata",note:"東京〜博多を約5時間で結ぶ、東海道・山陽新幹線の看板列車。"},
+ {nm:"はやぶさ",m:"E5",rt:[R("tohoku","tokyo","shinaomori"),R("hokkaido","shinaomori","shinhakodatehokuto")],stops:"tokyo ueno omiya sendai morioka shinaomori shinhakodatehokuto",note:"東京から青函トンネルをぬけて新函館北斗まで走る。"},
+ {nm:"かがやき",m:"W7",rt:[R("tohoku","tokyo","omiya"),R("joetsu","omiya","takasaki"),R("hokuriku","takasaki","tsuruga")],stops:"tokyo ueno omiya nagano toyama kanazawa fukui tsuruga",note:"東京と北陸をむすぶ最速タイプ。2024年に敦賀まで延びた。"},
+ {nm:"こまち",m:"E6",rt:[R("tohoku","tokyo","morioka"),R("akita","morioka","akita")],stops:"tokyo ueno omiya sendai morioka tazawako omagari akita",note:"盛岡から先は在来線の線路を走る「ミニ新幹線」。"},
+ {nm:"さくら",m:"N7008000",rt:[R("sanyo","shinosaka","hakata"),R("kyushu","hakata","kagoshimachuo")],stops:"shinosaka shinkobe okayama hiroshima kokura hakata kumamoto kagoshimachuo",note:"新大阪から鹿児島中央まで、山陽・九州新幹線を直通。"},
+ {nm:"とき",m:"E7",rt:[R("tohoku","tokyo","omiya"),R("joetsu","omiya","niigata")],stops:"tokyo ueno omiya takasaki echigoyuzawa nagaoka niigata",note:"東京と新潟をむすぶ上越新幹線の列車。"},
+ {nm:"つばさ",m:"E8",rt:[R("tohoku","tokyo","fukushima"),R("yamagata","fukushima","shinjo")],stops:"tokyo ueno omiya fukushima yonezawa yamagata tendo shinjo",note:"福島から先は山形線の在来線区間を走る。"},
+ {nm:"かもめ",m:"N700SK",rt:[R("nishikyushu","takeoonsen","nagasaki")],stops:"takeoonsen ureshinoonsen shinomura isahaya nagasaki",note:"2022年に開業した西九州新幹線（武雄温泉〜長崎）。"},
+ {nm:"ひかり",m:"N700S",rt:[R("tokaido","tokyo","shinosaka")],stops:"tokyo shinagawa shinyokohama odawara shizuoka hamamatsu toyohashi nagoya gifuhashima maibara kyoto shinosaka",note:"のぞみより停まる駅が多いタイプ。"},
+ {nm:"みずほ",m:"N7008000",rt:[R("sanyo","shinosaka","hakata"),R("kyushu","hakata","kagoshimachuo")],stops:"shinosaka okayama hiroshima hakata kumamoto kagoshimachuo",note:"九州新幹線の速達タイプ。"},
+ {nm:"つばめ",m:"K800",rt:[R("kyushu","hakata","kagoshimachuo")],stops:"hakata shintosu kurume chikugofunagoya shinomuta shintamana kumamoto shinyatsushiro shinminamata izumi satsumasendai kagoshimachuo",note:"九州新幹線の各駅停車タイプ。"},
+ {nm:"あさま",m:"E7",rt:[R("tohoku","tokyo","omiya"),R("joetsu","omiya","takasaki"),R("hokuriku","takasaki","nagano")],stops:"tokyo ueno omiya takasaki annakaharuna karuizawa sakudaira ueda nagano",note:"東京と長野をむすぶ北陸新幹線の列車。"},
+ {nm:"やまびこ",m:"E5",rt:[R("tohoku","tokyo","morioka")],stops:"tokyo ueno omiya utsunomiya koriyama fukushima sendai ichinoseki morioka",note:"東京〜盛岡の途中駅にたくさん停まる。"},
+ {nm:"はくたか",m:"E7",rt:[R("tohoku","tokyo","omiya"),R("joetsu","omiya","takasaki"),R("hokuriku","takasaki","kanazawa")],stops:"tokyo ueno omiya takasaki karuizawa nagano joetsumyoko toyama kanazawa",note:"東京と金沢を、かがやきより少し多く停まって結ぶ。"},
+ {nm:"のぞみ",m:"N700S",rt:[R("tokaido","tokyo","shinosaka"),R("sanyo","shinosaka","hakata")],stops:"tokyo shinagawa shinyokohama nagoya kyoto shinosaka okayama hiroshima kokura hakata",note:"東京〜博多を約5時間で結ぶ。",rev:1},
+ {nm:"はやぶさ",m:"H5",rt:[R("tohoku","tokyo","shinaomori"),R("hokkaido","shinaomori","shinhakodatehokuto")],stops:"tokyo ueno omiya sendai morioka shinaomori shinhakodatehokuto",note:"JR北海道の車両も東京まで乗り入れる。",rev:1},
+ {nm:"つるぎ",m:"W7",rt:[R("hokuriku","toyama","tsuruga")],stops:"toyama shintakaoka kanazawa komatsu kagaonsen awaraonsen fukui echizentakefu tsuruga",note:"富山〜敦賀を往復する北陸新幹線の列車。"},
+ {nm:"こだま",m:"N700S",rt:[R("tokaido","tokyo","shinosaka")],stops:"tokyo shinagawa shinyokohama odawara atami mishima shinfuji shizuoka kakegawa hamamatsu toyohashi mikawaanjo nagoya gifuhashima maibara kyoto shinosaka",note:"東海道新幹線の各駅停車。"},
+ {nm:"ひたち",m:"E657",rt:[R("hitachi","shinagawa","sendai")],stops:"shinagawa ueno mito hitachi iwaki sendai",note:"品川・上野と仙台を常磐線で結ぶ特急電車。"},
+ {nm:"サンダーバード",m:"EX683",rt:[R("thunder","osaka","tsuruga")],stops:"osaka kyoto omiimazu tsuruga",note:"大阪と敦賀をむすび、北陸新幹線に乗りかえできる。"},
+ {nm:"しらさぎ",m:"EX683",rt:[R("shirasagi","nagoya","tsuruga")],stops:"nagoya gifu maibara tsuruga",note:"名古屋と敦賀をむすぶ特急電車。"},
+ {nm:"ソニック",m:"EX885",rt:[R("sonic","hakata","oita")],stops:"hakata kokura nakatsu usa beppu oita",note:"博多と大分をむすぶ、カーブに強い振り子式の特急。"},
+ {nm:"やくも",m:"EX273",rt:[R("yakumo","okayama","izumoshi")],stops:"okayama kurashiki niimi yonago matsue izumoshi",note:"岡山と出雲市をむすぶ、山陰・山陽の特急電車。"},
+ {nm:"しおかぜ",m:"EX8600",rt:[R("shiokaze","okayama","matsuyama")],stops:"okayama utazu niihama imabari matsuyama",note:"瀬戸大橋をわたって四国の松山へ行く特急。"},
+ {nm:"くろしお",m:"EX287",rt:[R("kuroshio","shinosaka","shingu")],stops:"shinosaka wakayama shirahama shingu",note:"大阪から和歌山県の海ぞいを走る特急。"},
+ {nm:"はるか",m:"EX271",rt:[R("haruka","kyoto","kansaiairport")],stops:"kyoto shinosaka kansaiairport",note:"京都と関西空港をむすぶ空港特急。"},
+ {nm:"カムイ",m:"EX789",rt:[R("kamui","sapporo","asahikawa")],stops:"sapporo iwamizawa takikawa asahikawa",note:"札幌と旭川をむすぶ北海道の特急電車。"},
+ {nm:"たにがわ",m:"E7",rt:[R("tohoku","tokyo","omiya"),R("joetsu","omiya","echigoyuzawa")],stops:"tokyo ueno omiya kumagaya takasaki jomokogen echigoyuzawa",note:"東京〜越後湯沢の上越新幹線。"},
+ {nm:"なすの",m:"E5",rt:[R("tohoku","tokyo","nasushiobara")],stops:"tokyo ueno omiya oyama utsunomiya nasushiobara",note:"東京と那須塩原をむすぶ東北新幹線。"},
+ {nm:"はやて",m:"E5",rt:[R("tohoku","morioka","shinaomori")],stops:"morioka iwatenumakunai ninohe hachinohe shichinohetowada shinaomori",note:"盛岡〜新青森を走る東北新幹線の列車。"},
+ {nm:"のぞみ",m:"N700S",rt:[R("tokaido","tokyo","shinosaka"),R("sanyo","shinosaka","hakata")],stops:"tokyo shinagawa shinyokohama nagoya kyoto shinosaka okayama hiroshima kokura hakata",note:"東京〜博多を約5時間で結ぶ。",rev:1},
+ {nm:"はやぶさ",m:"E5",rt:[R("tohoku","tokyo","shinaomori"),R("hokkaido","shinaomori","shinhakodatehokuto")],stops:"tokyo ueno omiya sendai morioka shinaomori shinhakodatehokuto",note:"東京から新函館北斗まで走る。",rev:1}];
+/* ---- build train objects ---- */
+function mkRoute(rt){const ids=[],sp=[];
+ rt.forEach(([ln,a,b])=>{const L=LN[ln],i=L.ids.indexOf(a),j=L.ids.indexOf(b);if(i<0||j<0)throw new Error("route "+ln+a+b);const dr=i<=j?1:-1;
+  for(let k=i;k!==j+dr;k+=dr){const id=L.ids[k];if(ids.length&&ids[ids.length-1]===id)continue;
+   if(ids.length)sp.push(L.vv[dr>0?k:k-dr]);ids.push(id)}});
+ return{ids,sp}}
+function mkTrain(sv,idx){const R0=mkRoute(sv.rt),pts=R0.ids.map(id=>[ST[id].x,ST[id].y]),cum=[0];
+ for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
+ const tot=cum[cum.length-1],stops=[0,tot];
+ sv.stops.split(" ").forEach(id=>{const k=R0.ids.indexOf(id);if(k>0&&k<R0.ids.length-1)stops.push(cum[k])});
+ stops.sort((a,b)=>a-b);
+ const md=MD[sv.m];
+ return{sv,md,idx,ids:R0.ids,sp:R0.sp,pts,cum,tot,stops,base:stops.slice(),s:Math.random()*tot,dir:sv.rev?-1:1,wait:Math.random()*3,x:0,y:0,ang:0,vcap:Math.max(...(md.v.match(/\d+/g)||[130]).map(Number))}}
+const FROMTO=t=>ST[t.ids[0]].n+" ⇄ "+ST[t.ids[t.ids.length-1]].n;
+function upd(t,dt){
+ if(t.wait>0){t.wait-=dt;return}
+ let seg=0;while(seg<t.cum.length-2&&t.cum[seg+1]<t.s)seg++;
+ const lim=t.sp[seg]||130,v=Math.min(t.vcap,lim)*.95;
+ let dn=1e9,dp=1e9;
+ for(const st of t.stops){const a=(st-t.s)*t.dir;if(a>1e-4&&a<dn)dn=a;if(a<=1e-4&&-a<dp)dp=-a}
+ const ease=Math.max(.22,Math.min(1,.22+Math.min(dn,dp)/24)),step=v/111*ease*dt;
+ if(step>=dn){t.s+=t.dir*dn;if(t.s<=1e-3||t.s>=t.tot-1e-3){t.dir*=-1;t.wait=6}else t.wait=2.2}else t.s+=t.dir*step;
+ t.s=Math.max(0,Math.min(t.tot,t.s))}
+function place(t){let i=0;while(i<t.cum.length-2&&t.cum[i+1]<t.s)i++;
+ const f=(t.s-t.cum[i])/((t.cum[i+1]-t.cum[i])||1),a=t.pts[i],b=t.pts[i+1];
+ t.x=a[0]+(b[0]-a[0])*f;t.y=a[1]+(b[1]-a[1])*f;t.ang=Math.atan2(b[1]-a[1],b[0]-a[0])+(t.dir<0?Math.PI:0)}
+/* ---- svg ---- */
+const NSV="http://www.w3.org/2000/svg",svg=$("#mapsvg"),mv=$("#mv"),scr=$("#scr");
+const el=(tag,at,par)=>{const e=document.createElementNS(NSV,tag);for(const k in at)e.setAttribute(k,at[k]);(par||mv).appendChild(e);return e};
+const landG=el("g",{id:"land"},mv);
+COAST.forEach(c=>el("path",{d:polyD(c),fill:"var(--land)",stroke:"var(--landline)","stroke-width":1.4,"stroke-linejoin":"round","vector-effect":"non-scaling-stroke"},landG));
+el("path",{d:polyD(BIWA),fill:"var(--sea2)",stroke:"var(--landline)","stroke-width":1,"vector-effect":"non-scaling-stroke"},landG);
+[["日本海",190,300],["太平洋",640,640],["オホーツク海",640,40],["東シナ海",40,830],["瀬戸内海",290,640]].forEach(([n,x,y])=>{const t=el("text",{x,y,"font-size":17,fill:"var(--sealbl)","font-style":"italic","text-anchor":"middle"},mv);t.textContent=n});
+const railG=el("g",{id:"rails"},mv);
+[...LNL.filter(l=>l.conv),...LNL.filter(l=>!l.conv)].forEach(L=>{
+ const d="M"+L.ids.map(i=>ST[i].x.toFixed(1)+" "+ST[i].y.toFixed(1)).join("L");
+ if(L.conv){el("path",{d,fill:"none",stroke:L.c,"stroke-width":2.4,"stroke-linejoin":"round","stroke-linecap":"round","vector-effect":"non-scaling-stroke",opacity:.9},railG);el("path",{d,fill:"none",stroke:"#fff","stroke-width":1,"stroke-dasharray":"4 4","vector-effect":"non-scaling-stroke",opacity:.8},railG)}
+ else{el("path",{d,fill:"none",stroke:L.c,"stroke-width":5,"stroke-linejoin":"round","stroke-linecap":"round","vector-effect":"non-scaling-stroke"},railG);el("path",{d,fill:"none",stroke:"#fff","stroke-width":1.3,"stroke-dasharray":"5 5","vector-effect":"non-scaling-stroke",opacity:.85},railG)}});
+/* stations */
+const hsG=el("g",{id:"hs"},scr);
+STL.forEach((s,i)=>{const c=s.ln.find(l=>!l.conv)||s.ln[0];s.col=c?c.c:"#555";s.ord=i;
+ s.dot=el("circle",{r:s.t===1?5.5:s.t===2?4.2:3.2,fill:"#fff",stroke:s.col,"stroke-width":s.t===1?3:2.4},scr);
+ s.lbl=el("text",{"font-size":s.t===1?15:13,"font-weight":s.t===1?900:700,class:"slb"},scr);s.lbl.textContent=s.n;s.fs=s.t===1?15:13});
+const trG=el("g",{id:"trs"},scr);
+/* viewport */
+let V={k:1,tx:0,ty:0},K0=1,zoomed=false;
+function mapFit(){const sc=$("#scene"),W=sc.clientWidth,H=sc.clientHeight;if(!W)return;K0=Math.min(W/MAPW,H/MAPH)*.97;
+ if(!zoomed||V.k<K0){V.k=K0;V.tx=(W-MAPW*K0)/2;V.ty=(H-MAPH*K0)/2}applyV()}
+window.mapFit=mapFit;
+function applyV(){mv.setAttribute("transform",`translate(${V.tx.toFixed(2)} ${V.ty.toFixed(2)}) scale(${V.k.toFixed(4)})`);layout()}
+function layout(){const sc=$("#scene"),W=sc.clientWidth,H=sc.clientHeight,rel=V.k/K0,boxes=[];
+ STL.forEach(s=>{s.sx=s.x*V.k+V.tx;s.sy=s.y*V.k+V.ty;const inn=s.sx>-30&&s.sx<W+30&&s.sy>-20&&s.sy<H+20;
+  s.dot.style.display=inn?"":"none";if(inn)s.dot.setAttribute("transform",`translate(${s.sx.toFixed(1)} ${s.sy.toFixed(1)})`);s.lbl.style.display="none"});
+ STL.slice().sort((a,b)=>a.t-b.t||a.ord-b.ord).forEach(s=>{
+  if(s.sx<-30||s.sx>W+30||s.sy<-20||s.sy>H+20)return;
+  if(s.t===2&&rel<1.15)return;if(s.t===3&&rel<2)return;
+  const w=s.n.length*s.fs*1.02+6,x0=s.sx+8,y0=s.sy-s.fs*.85,x1=x0+w,y1=s.sy+s.fs*.4;
+  for(const b of boxes)if(x0<b[2]&&x1>b[0]&&y0<b[3]&&y1>b[1])return;
+  boxes.push([x0,y0,x1,y1]);s.lbl.style.display="";s.lbl.setAttribute("x",x0.toFixed(1));s.lbl.setAttribute("y",(s.sy+s.fs*.35).toFixed(1))});layoutH()}
+function zoomAt(cx,cy,f){const nk=Math.min(K0*14,Math.max(K0,V.k*f));f=nk/V.k;V.tx=cx-(cx-V.tx)*f;V.ty=cy-(cy-V.ty)*f;V.k=nk;zoomed=nk>K0*1.01;applyV()}
+/* gestures */
+const PT=new Map();let g0=null,tapS=null;
+const sp=e=>{const r=svg.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+svg.addEventListener("pointerdown",e=>{svg.setPointerCapture(e.pointerId);const [x,y]=sp(e);PT.set(e.pointerId,{x,y});
+ if(PT.size===1)tapS={x,y,t:performance.now(),moved:0};else tapS=null;g0=null});
+svg.addEventListener("pointermove",e=>{if(!PT.has(e.pointerId))return;const [x,y]=sp(e),p=PT.get(e.pointerId),dx=x-p.x,dy=y-p.y;
+ if(PT.size===1){V.tx+=dx;V.ty+=dy;if(tapS)tapS.moved+=Math.abs(dx)+Math.abs(dy);zoomed=V.k>K0*1.01||zoomed;p.x=x;p.y=y;clampV();applyV()}
+ else if(PT.size===2){const o=[...PT.entries()].find(([id])=>id!==e.pointerId)[1],d0=Math.hypot(p.x-o.x,p.y-o.y),mx0=(p.x+o.x)/2,my0=(p.y+o.y)/2;
+  p.x=x;p.y=y;const d1=Math.hypot(p.x-o.x,p.y-o.y),mx=(p.x+o.x)/2,my=(p.y+o.y)/2;
+  V.tx+=mx-mx0;V.ty+=my-my0;if(d0>0)zoomAt(mx,my,d1/d0);else applyV()}});
+function clampV(){const sc=$("#scene"),W=sc.clientWidth,H=sc.clientHeight,m=80;
+ V.tx=Math.min(W-m,Math.max(m-MAPW*V.k,V.tx));V.ty=Math.min(H-m,Math.max(m-MAPH*V.k,V.ty))}
+const up=e=>{if(!PT.has(e.pointerId))return;const [x,y]=sp(e);PT.delete(e.pointerId);
+ if(tapS&&tapS.moved<8&&performance.now()-tapS.t<600&&PT.size===0)tap(x,y);if(PT.size===0)tapS=null};
+svg.addEventListener("pointerup",up);svg.addEventListener("pointercancel",e=>{PT.delete(e.pointerId);tapS=null});
+svg.addEventListener("wheel",e=>{e.preventDefault();const [x,y]=sp(e);zoomAt(x,y,Math.exp(-e.deltaY*.0015))},{passive:false});
+svg.addEventListener("dblclick",e=>{const [x,y]=sp(e);zoomAt(x,y,2)});
+$("#zin").onclick=()=>{const sc=$("#scene");zoomAt(sc.clientWidth/2,sc.clientHeight/2,1.6)};
+$("#zout").onclick=()=>{const sc=$("#scene");zoomAt(sc.clientWidth/2,sc.clientHeight/2,1/1.6);clampV();applyV()};
+$("#zfit").onclick=()=>{zoomed=false;V.k=0;mapFit()};
+/* houses (isometric 3D look) */
+const HCOL={R:["#e5483f","#b8322b"],P:["#7a55e0","#5a3fb8"]};
+const lonlat=(x,y)=>[x/48.6+128.5,45.8-y/60];
+const inPoly=(p,poly)=>{let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const [xi,yi]=poly[i],[xj,yj]=poly[j];if((yi>p[1])!==(yj>p[1])&&p[0]<(xj-xi)*(p[1]-yi)/(yj-yi)+xi)c=!c}return c};
+const onLand=(lo,la)=>COAST.some(c=>inPoly([lo,la],c));
+function houseShape(h){
+ if(h.k==="b"){const w=10,d=5,H=28,st='stroke="#8a6500" stroke-width=".8" stroke-linejoin="round"';let wl="",wr="";
+  [6,12,18,24].forEach(y=>{wl+=`M-8 ${1-y}L-2 ${4-y}`;wr+=`M2 ${4-y}L8 ${1-y}`});
+  return `<ellipse cx="0" cy="4" rx="15" ry="6.5" fill="#0003"/>
+  <path d="M${-w} 0L0 ${d}L0 ${d-H}L${-w} ${-H}Z" fill="#d9a400" ${st}/><path d="M0 ${d}L${w} 0L${w} ${-H}L0 ${d-H}Z" fill="#f2bd1a" ${st}/>
+  <path d="M${-w} ${-H}L0 ${d-H}L${w} ${-H}L0 ${-d-H}Z" fill="#ffe27a" ${st}/>
+  <path d="${wl}" stroke="#fff" stroke-opacity=".8" stroke-width="2.4" stroke-dasharray="3 2.4" fill="none"/><path d="${wr}" stroke="#fff" stroke-opacity=".8" stroke-width="2.4" stroke-dasharray="3 2.4" fill="none"/>`}
+ const c=HCOL[h.c]||HCOL.R,st='stroke="#25304a" stroke-opacity=".55" stroke-width=".8" stroke-linejoin="round"';
+ return `<ellipse cx="0" cy="4" rx="14" ry="6" fill="#0003"/>
+ <path d="M-9 0L0 4.5L0 -3.5L-9 -8Z" fill="#e8dbbd" ${st}/><path d="M0 4.5L9 0L9 -8L0 -3.5Z" fill="#f7ecd2" ${st}/>
+ <path d="M2.5 3.25L5.5 1.75L5.5 -3.25L2.5 -1.75Z" fill="#6a4328"/><path d="M-7 -2L-3 0L-3 -3L-7 -5Z" fill="#9fd6ff" stroke="#25304a" stroke-opacity=".5" stroke-width=".6"/>
+ <path d="M-11 -7.8L0 -2.2L0 -21Z" fill="${c[1]}" ${st}/><path d="M0 -2.2L11 -7.8L0 -21Z" fill="${c[0]}" ${st}/>`}
+let HO=[],selH=null,placing=null;
+const bmsg=t=>{$("#bmsg").textContent=t};
+function mkHouse(h,anim){const g=el("g",{},hsG),inner=el("g",{},g);inner.innerHTML=houseShape(h)+`<ellipse class="hring" cx="0" cy="3" rx="17" ry="7.5" fill="none" stroke="#ff7a2f" stroke-width="2.4" style="display:none"/>`;
+ const t=el("text",{y:h.k==="b"?-35:-26,"text-anchor":"middle","font-size":12,"font-weight":900,class:"slb"},g);
+ const o={h,g,inner,t,ring:inner.querySelector(".hring"),pop:anim?0:1,sx:0,sy:0,sc:1};HO.push(o);return o}
+function layoutH(){const rel=V.k/K0;
+ HO.forEach(o=>{const [x,y]=PJ(o.h.lo,o.h.la);o.sx=x*V.k+V.tx;o.sy=y*V.k+V.ty;
+  const sc=Math.min(2,Math.max(.5,Math.pow(rel,.75)*.5)),p=o.pop,f=p<1?1+Math.sin(p*Math.PI)*.35-(1-p)*.9:1;o.sc=sc;
+  o.g.setAttribute("transform",`translate(${o.sx.toFixed(1)} ${o.sy.toFixed(1)}) scale(${(sc*Math.max(.05,f)).toFixed(3)})`);
+  const sel=o===selH;o.ring.style.display=sel?"":"none";o.t.textContent=o.h.name||"";const ff=sc*Math.max(.05,f);o.t.setAttribute("font-size",(12/ff).toFixed(2));o.t.style.strokeWidth=(3.4/ff).toFixed(2)+"px";o.t.style.display=o.h.name&&(sel||rel>1.15)?"":"none"});
+ if(HO.length>1)HO.slice().sort((a,b)=>a.sy-b.sy).forEach(o=>hsG.appendChild(o.g))}
+function hitHouse(x,y){let b=null,bd=1e9;HO.forEach(o=>{const d=Math.hypot(o.sx-x,o.sy-10*o.sc-y);if(d<15*o.sc&&d<bd){bd=d;b=o}});return b}
+function startPlace(k){const cost=k==="s"?15:k==="h"?20:30;
+ if(placing===k){placing=null;svg.style.cursor="";bmsg("やめたよ。");return}
+ if(G.star<cost){bmsg(`⭐が たりないよ（${cost}こ ひつよう）`);return}
+ placing=k;selH=null;svg.style.cursor="crosshair";bmsg(k==="s"?"線路の上を タップして えきを つくろう！ もういちど おすと やめるよ。":"地図の 陸を タップして たてよう！ もういちど おすと やめるよ。");showInfo()}
+function tryPlace(x,y){if(placing==="s"){tryStation(x,y);return}const k=placing,cost=k==="h"?20:30,[lo,la]=lonlat((x-V.tx)/V.k,(y-V.ty)/V.k);
+ if(!onLand(lo,la)){bmsg("そこは 海だよ。陸を タップしてね。");return}
+ if(HO.some(o=>Math.hypot(o.sx-x,o.sy-y)<12*o.sc)){bmsg("ほかの たてものに ちかすぎるよ。");return}
+ const h={id:"h"+Date.now()+Math.floor(Math.random()*999),k,c:rnd(["R","P"]),lo,la,name:""};
+ G.houses.push(h);G.star-=cost;save();pills();const o=mkHouse(h,true);placing=null;svg.style.cursor="";selH=o;
+ bmsg(k==="h"?"いえを たてたよ！":"ビルを たてたよ！");showInfo();layoutH()}
+$("#bs").onclick=()=>startPlace("s");$("#bh").onclick=()=>startPlace("h");$("#bb").onclick=()=>startPlace("b");
+/* custom stations */
+function mkCust(c){const A=ST[c.a],B2=ST[c.b],L=LN[c.line];
+ const s={id:c.id,n:c.name,x:A.x+(B2.x-A.x)*c.t,y:A.y+(B2.y-A.y)*c.t,t:1,ln:[L],cu:c,ord:100000+STL.length,col:L.c,fs:14};
+ s.dot=el("circle",{r:5.5,fill:"#fff1a8",stroke:L.c,"stroke-width":3},scr);s.lbl=el("text",{"font-size":14,"font-weight":900,class:"slb"},scr);s.lbl.textContent=s.n;
+ scr.insertBefore(s.dot,trG);scr.insertBefore(s.lbl,trG);ST[c.id]=s;STL.push(s);return s}
+function custDist(t){const out=[];G.stations.forEach(c=>{for(let m=0;m<t.ids.length-1;m++){
+  if(t.ids[m]===c.a&&t.ids[m+1]===c.b||t.ids[m]===c.b&&t.ids[m+1]===c.a){const fr=t.ids[m]===c.a?c.t:1-c.t;out.push(t.cum[m]+fr*(t.cum[m+1]-t.cum[m]));break}}});return out}
+function refreshStops(t){t.stops=[...t.base,...custDist(t)].sort((a,b)=>a-b)}
+function tryStation(x,y){let best=null;
+ LNL.forEach(L=>{for(let i=0;i<L.ids.length-1;i++){const a=ST[L.ids[i]],b=ST[L.ids[i+1]],dx=b.sx-a.sx,dy=b.sy-a.sy,l2=dx*dx+dy*dy||1;
+  let t=((x-a.sx)*dx+(y-a.sy)*dy)/l2;t=Math.max(0,Math.min(1,t));const d=Math.hypot(a.sx+dx*t-x,a.sy+dy*t-y);
+  if(!best||d<best.d)best={d,L,a:a.id,b:b.id,t}}});
+ if(!best||best.d>16){bmsg("線路の ちかくを タップしてね。");return}
+ if(STL.some(s=>Math.hypot(s.sx-x,s.sy-y)<14)){bmsg("ほかの えきに ちかすぎるよ。");return}
+ if(G.star<15){bmsg("⭐が たりないよ。");return}
+ const n=G.stations.length+1,c={id:"u"+Date.now()+Math.floor(Math.random()*999),line:best.L.id,a:best.a,b:best.b,t:best.t,name:"新駅"+n};
+ G.stations.push(c);G.star-=15;save();pills();const s=mkCust(c);TR.forEach(refreshStops);
+ placing=null;svg.style.cursor="";selS=s;selH=null;selT=null;bmsg(best.L.conv?"えきを つくったよ！ とっきゅうも とまるよ。":"えきを つくったよ！ 列車が とまるよ。");showInfo();layout()}
+/* trains */
+let N=0,TR=[],selT=null,selS=null;
+const bodyPath="M-10 -2.7H4.5Q10 -2.7 11.5 0Q10 2.7 4.5 2.7H-10Q-11.5 2.7 -11.5 0Q-11.5 -2.7 -10 -2.7Z";
+function mkSprite(t){const g=el("g",{},trG),md=t.md;
+ t.ring=el("circle",{r:17,fill:"none",stroke:"#ff7a2f","stroke-width":2.4,class:"tring"},g);t.ring.style.display="none";
+ const b=el("g",{},g);t.body=b;
+ el("path",{d:bodyPath,fill:md.body,stroke:"#25304a","stroke-width":1.1},b);
+ el("rect",{x:-9,y:-.8,width:17,height:1.6,fill:md.acc},b);
+ el("path",{d:"M6 -2.5Q11 -2.5 11.2 0Q11 2.5 6 2.5Z",fill:md.acc},b);
+ const tx=el("text",{y:-16,"text-anchor":"middle","font-size":11,"font-weight":900,class:"tlb"},g);tx.textContent=t.sv.nm;t.tx=tx;t.g=g;
+ g.style.cursor="pointer"}
+function setN(n,quiet){n=Math.min(SV.length,Math.max(3,n));
+ while(TR.length<n){const t=mkTrain(SV[TR.length],TR.length);refreshStops(t);place(t);mkSprite(t);TR.push(t);N=TR.length}
+ $("#tn").textContent=N;$("#tt").textContent=SV.length}
+function trainUp(){const before=TR.length,want=Math.min(SV.length,3+(G.stage-1));
+ if(want<=before)return before>=SV.length?"":null;setN(want);const t=TR[TR.length-1];
+ return `${t.sv.nm}（${NM[t.sv.m]||t.sv.m}）`}
+function infoT(t){const md=t.md,sv=t.sv,nm=NM[sv.m]||sv.m;
+ return `<b style="font-size:16px">🚄 ${sv.nm}</b> <span class="chip" style="background:${md.acc};color:#fff">${nm}</span>
+ <div class="ti">${sv.note}</div>
+ <div class="ti">区間　${FROMTO(t)}</div>
+ <div class="ti">${md.op}${md.cars?"　"+md.cars+"両編成":""}</div>
+ <div class="ti">最高速度　${md.v}${md.deb?"　／　"+md.deb+"年デビュー":""}</div>`}
+function tap(x,y){if(placing){tryPlace(x,y);return}let bt=null,bd=22;TR.forEach(t=>{const d=Math.hypot(t.sx-x,t.sy-y);if(d<bd){bd=d;bt=t}});
+ if(bt){selT=bt;selS=null;selH=null;showInfo();layoutH();return}
+ const hh=hitHouse(x,y);if(hh){selH=hh;selT=selS=null;showInfo();layoutH();return}
+ let bs=null;bd=18;STL.forEach(s=>{if(s.dot.style.display==="none")return;const d=Math.hypot(s.sx-x,s.sy-y);if(d<bd){bd=d;bs=s}});
+ if(bs){selS=bs;selT=null;selH=null;showInfo();layoutH();return}selT=selS=selH=null;showInfo();layoutH()}
+function showInfo(){const box=$("#ti");
+ if(selH){const h=selH.h;box.innerHTML=`<b style="font-size:16px">${h.k==="b"?"🏢 ビル":"🏠 いえ"}</b><input class="hin" id="hn" maxlength="8" placeholder="なまえ（8もじまで）" value="${(h.name||"").replace(/"/g,"")}"><div class="acts"><button id="hset">なまえをつける</button><button id="hdel" style="background:var(--red)">こわす</button></div>`;
+  $("#hset").onclick=()=>{h.name=$("#hn").value.trim().slice(0,8);save();layoutH();bmsg("なまえを つけたよ。")};
+  $("#hdel").onclick=()=>{const c=h.k==="b"?15:10;selH.g.remove();HO=HO.filter(o=>o!==selH);G.houses=G.houses.filter(x=>x!==h);G.star+=c;selH=null;save();pills();bmsg(`こわしたよ。⭐ ${c} かえってきた。`);showInfo();layoutH()}}
+ else if(selS&&selS.cu){const c=selS.cu;box.innerHTML=`<b style="font-size:16px">🚉 じぶんの駅</b><div class="ti">${selS.ln.map(l=>`<span class="chip" style="background:${l.c};color:#fff">${l.n}</span>`).join(" ")}</div><input class="hin" id="sn" maxlength="8" placeholder="えきの なまえ" value="${c.name.replace(/"/g,"")}"><div class="acts"><button id="sset">なまえをつける</button><button id="sdel" style="background:var(--red)">こわす</button></div>`;
+  $("#sset").onclick=()=>{c.name=$("#sn").value.trim().slice(0,8)||c.name;selS.n=c.name;selS.lbl.textContent=c.name;save();layout();bmsg("なまえを つけたよ。")};
+  $("#sdel").onclick=()=>{const s0=selS;s0.dot.remove();s0.lbl.remove();STL.splice(STL.indexOf(s0),1);delete ST[s0.id];G.stations=G.stations.filter(x=>x!==c);G.star+=8;selS=null;save();pills();TR.forEach(refreshStops);bmsg("こわしたよ。⭐ 8 かえってきた。");showInfo();layout()}}
+ else if(selT)box.innerHTML=infoT(selT);
+ else if(selS){const s=selS;box.innerHTML=`<b style="font-size:16px">📍 ${s.n}駅</b><div class="ti">${s.ln.map(l=>`<span class="chip" style="background:${l.c};color:#fff">${l.n}</span>`).join(" ")}</div>`}
+ else box.innerHTML=`<span style="opacity:.7">れっしゃや駅を タップすると くわしく 見られるよ。<br>2本の指で 大きくできるよ。</span>`}
+/* legend */
+$("#lg").innerHTML=LNL.filter(l=>!l.conv).map(l=>`<span><i style="background:${l.c}"></i>${l.n.replace("新幹線","")}</span>`).join("")+`<span><i style="background:#8a8f9c;height:3px"></i>特急</span>`;
+/* frame loop */
+const rmo=matchMedia("(prefers-reduced-motion:reduce)").matches;let lt=performance.now();
+function frame(now){const dt=Math.min(.1,(now-lt)/1000);lt=now;const rel=V.k/K0;let pp=0;HO.forEach(o=>{if(o.pop<1){o.pop=Math.min(1,o.pop+dt*2.5);pp=1}});if(pp)layoutH();
+ TR.forEach(t=>{if(!rmo)upd(t,dt);place(t);t.sx=t.x*V.k+V.tx;t.sy=t.y*V.k+V.ty;
+  t.g.setAttribute("transform",`translate(${t.sx.toFixed(1)} ${t.sy.toFixed(1)})`);
+  t.body.setAttribute("transform",`rotate(${(t.ang*180/Math.PI).toFixed(1)}) scale(1.6)`);
+  const sel=t===selT;t.ring.style.display=sel?"":"none";t.tx.style.display=(sel||rel>1.25)?"":"none"});
+ requestAnimationFrame(frame)}
+G.stations=G.stations.filter(c=>ST[c.a]&&ST[c.b]&&LN[c.line]);G.stations.forEach(mkCust);G.houses.forEach(h=>mkHouse(h,false));setN(3+(G.stage-1));showInfo();
+window.addEventListener("resize",()=>{mapFit()});
+requestAnimationFrame(()=>{mapFit();requestAnimationFrame(frame)});
+
+/* ===== questions ===== */
+let ac=null,B=null,panic=false;const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const mix=(c,a)=>{const ix=c.map((_,i)=>i).sort(()=>Math.random()-.5);return{c:ix.map(i=>c[i]),a:ix.indexOf(a)}};
+const pick3=(good,pool)=>{const o=[good];for(const x of pool.slice().sort(()=>Math.random()-.5)){if(o.length>=3)break;if(!o.includes(x))o.push(x)}return o};
+const KB={
+1:"やま山 かわ川 き木 ひ火 みず水 つき月 め目 くち口 みみ耳 て手 あし足 ひと人 おおきい大 ちいさい小 うえ上 した下 ひだり左 みぎ右 なか中 はな花",
+2:"ちから力 あさ朝 ひる昼 よる夜 かぜ風 くも雲 ほし星 うみ海 とり鳥 さかな魚 ひろい広 ちかい近 とおい遠 みち道 いえ家 かんがえる考 おしえる教 あるく歩 かく書 よむ読",
+3:"みずうみ湖 おくる送 はこぶ運 いのち命 びょうき病 くすり薬 もつ持 まつ待 こたえ答 しらべる調 はじめ始 おわり終 みなと港 てつ鉄 うつす写 ひらく開 しめる閉 いそぐ急 たすける助 あそぶ遊",
+4:"たたかう戦 のぞむ望 はたらく働 あらう洗 えらぶ選 あつめる集 かならず必 へる減 ふえる増 なかま仲 くらい暗 ねがう願 むすぶ結 やくそく約 わらう笑 なおす治",
+5:"たしかめる確 くらべる比 そなえる備 ゆたか豊 つとめる務 あやまる謝 いとなむ営 あつい厚 たもつ保 ことなる異 ゆるす許 けわしい険 みちびく導 さからう逆 まねく招 ついやす費",
+6:"みとめる認 とうとい尊 やさしい優 おさめる納 たから宝 わすれる忘 たまご卵 はら腹 まど窓 せなか背 いただき頂 うら裏 のう脳 みだれる乱 くれる暮 ろん論"};
+const KJ={};for(const g in KB)KJ[g]=KB[g].split(" ").map(s=>{const m=s.match(/^([ぁ-ゟー]+)(.)$/);return[m[1],m[2]]});
+const RB={
+1:[["たろうは あめの日に かさを わすれて、ぬれて かえりました。","たろうは なぜ ぬれましたか？","かさを わすれたから","ころんだから","プールに いったから"],["はなこは まいあさ いぬの さんぽに いきます。きょうは あめなので いきません。","きょう さんぽに いかない りゆうは？","あめだから","ねむいから","いぬが いないから"],["うさぎは にんじんが すきです。まいにち ひとつ たべます。","うさぎが すきな たべものは？","にんじん","りんご","ケーキ"],["ゆうたは あさ 7じに おきて、かおを あらいました。","ゆうたが あさ したことは？","かおを あらった","およいだ","ねた"]],
+2:[["ともこは おばあちゃんの いえに いきました。おばあちゃんは おいしい ケーキを つくって まっていました。","おばあちゃんは なにを つくった？","ケーキ","クッキー","カレー"],["きのうは ゆきが ふりました。そうたは ともだちと ゆきだるまを つくって あそびました。","そうたは なにを つくった？","ゆきだるま","かまくら","たこ"],["さくらの はなが さきました。はるが きたことを おしえてくれます。","さくらの はなは なにを おしえてくれる？","はるが きたこと","あきが きたこと","あめが ふること"],["だいきは なわとびが にがてでした。まいにち れんしゅうして、ついに 50かい とべました。","だいきが とべるように なった わけは？","まいにち れんしゅうしたから","なわを かえたから","ともだちに かわったから"]],
+3:[["ありは 食べものを 見つけると、においの 道しるべを 地面に つけて 仲間に 知らせます。","ありは どうやって 仲間に 知らせますか？","においの 道しるべを つける","大きな 声で 鳴く","羽を ふるわせる"],["ゆきは、雲の 中の 水の つぶが 氷の けっしょうに なって 落ちて きた ものです。","ゆきは 何が 氷に なった もの？","雲の 中の 水の つぶ","地面の 水","海の 水"],["ぼくは 図書館で 本を 三さつ かりました。一週間いないに 返さなければ なりません。","本を いつまでに 返す？","一週間いない","三日","一か月"],["みさきは 弟が ないて いたので、自分の おやつを 半分 わけて あげました。弟は えがおに なりました。","みさきは なぜ おやつを わけた？","弟が ないて いたから","おなかが いっぱいだから","おやつが きらいだから"]],
+4:[["地球温暖化が すすむと、北極の 氷が とけ、海面が 上がると 言われています。そのため、低い 土地に 住む 人々が 困ります。","海面が 上がる 原因として 書かれて いるのは？","北極の 氷が とける こと","雨が 増える こと","風が 強くなる こと"],["ことわざ「急がば回れ」は、急いでいる ときほど 安全で 確実な 方法を 選べ という 意味です。","「急がば回れ」の 意味は？","急ぐ ときほど 確実な 方法を えらぶ","急いで ゴールに むかう","遠まわりは むだだ"],["祖父は 毎朝 五時に 起きて 畑の 世話を します。「野菜は 声を かけると 元気に 育つ」が 口ぐせです。","祖父の 口ぐせは？","野菜は 声を かけると 元気に 育つ","早起きは 三文の 得","畑は 広いほど よい"],["この 町の 川には、むかし ホタルが たくさん いました。水が よごれて へりましたが、市民の 清そう活動で 少しずつ もどって きています。","ホタルが もどって きた のは なぜ？","清そう活動で 水が きれいに なったから","ホタルを 外国から 買ったから","川が 広く なったから"]],
+5:[["「情けは 人の ためならず」は、人に 親切に すれば、いつか 自分に 良い 結果が 返って くる という 意味です。","この ことわざの 意味は？","親切は めぐって 自分に 返る","親切は 相手の ためにならない","人に 頼ると 失敗する"],["A案は 費用が 安い 代わりに 時間が かかります。B案は 費用が 高い けれど すぐに 完成します。期限が 迫って いる 場合は B案が 適して います。","期限が 迫って いる とき 適して いる のは？","B案","A案","どちらも 不適"],["実験の 結果、水温が 高いほど 砂糖は 多く とけました。したがって 水温と とける 量には 関係が あると 言えます。","実験から 言えることは？","水温が 高いほど 砂糖が 多く とける","砂糖は 水温に 関係なく とける","水温が 低いほど よく とける"],["彼は 失敗しても あきらめず、原因を 分せきして 次に いかしました。その 姿勢が 周りの 信頼を 集めました。","周りの 信頼を 集めた 理由は？","失敗を 分せきして 次に いかす 姿勢","失敗を しなかったこと","人に 任せたこと"]],
+6:[["筆者は、便利さを 追い求める 一方で、失われる ものにも 目を 向ける 必要が あると 述べて います。","筆者の 主張に 近い のは？","便利さの かげで 失う ものも 考えるべき","便利さは 悪い ものだ","昔に もどるべきだ"],["「論より 証拠」とは、議論を 重ねる より、確かな 事実を しめす ほうが 説得力が あるという 意味です。","「論より 証拠」の 意味は？","事実を しめす ほうが 説得力が ある","議論を 続ける べき","証拠は かくす べき"],["この 都市では 公共交通を 整備した 結果、自動車の 利用が 減り、大気の よごれが 改善しました。","都市で おきた 変化は？","大気の よごれが 改善した","自動車が 増えた","交通費が 上がった"],["彼の 発明は、すぐには 評価されなかった。しかし 数十年後、多くの 人の 生活を 支える 技術として 認められた。","この 発明は どう 評価された？","数十年後に 認められた","すぐに 人気に なった","評価されない ままだった"]]};
+function mathQ(g,n){const s=Math.min(1.8,1+n/25),t=Math.random();let h,v,f=String,nr=[1,-1,2,-2,10,-10,3,-3,5,-5];
+ if(g===1){const mx=Math.round(Math.min(20,10*s));if(t<.5){const x=ri(1,mx-1),y=ri(1,mx-x);h=`${x} + ${y}`;v=x+y}else{const a=ri(2,mx),b=ri(1,a-1);h=`${a} − ${b}`;v=a-b}}
+ else if(g===2){if(t<.25){const a=ri(10,70),b=ri(5,99-a);h=`${a} + ${b}`;v=a+b}else if(t<.5){const a=ri(20,99),b=ri(5,a-1);h=`${a} − ${b}`;v=a-b}else{const a=ri(2,s>1.4?7:5),b=ri(1,9);h=`${a} × ${b}`;v=a*b}}
+ else if(g===3){if(t<.35){const a=ri(2,9),b=ri(2,9);h=`${a} × ${b}`;v=a*b}else if(t<.6){const b=ri(2,9),q=ri(2,9);h=`${b*q} ÷ ${b}`;v=q}else if(t<.8){const a=ri(100,Math.round(500*s)),b=ri(50,300);h=`${a} + ${b}`;v=a+b}else{const a=ri(200,Math.round(900*s)),b=ri(50,a-1);h=`${a} − ${b}`;v=a-b}}
+ else if(g===4){if(t<.4){const a=ri(11,99),b=ri(2,9);h=`${a} × ${b}`;v=a*b}else if(t<.7){const b=ri(2,9),q=ri(10,99);h=`${b*q} ÷ ${b}`;v=q}else if(t<.85){const a=ri(1000,6000),b=ri(100,3000);h=`${a} + ${b}`;v=a+b}else{const a=ri(2000,9000),b=ri(100,a-1);h=`${a} − ${b}`;v=a-b}}
+ else if(g===5){if(t<.4){const A=ri(11,99),B2=ri(11,99);f=x=>x.toFixed(1);nr=nr.map(d=>d/10);if(Math.random()<.5){h=`${f(A/10)} + ${f(B2/10)}`;v=(A+B2)/10}else{const hi=Math.max(A,B2),lo=Math.min(A,B2);h=`${f(hi/10)} − ${f(lo/10)}`;v=(hi-lo)/10}}else if(t<.7){const a=ri(12,25),b=ri(3,9);h=`${a} × ${b}`;v=a*b}else{const b=ri(2,12),q=ri(5,Math.round(25*s));h=`${b*q} ÷ ${b}`;v=q}}
+ else{if(t<.3){const a=ri(2,9),b=ri(2,9),c=ri(2,9);h=`(${a} + ${b}) × ${c}`;v=(a+b)*c}else if(t<.55){const a=ri(11,30),b=ri(11,19);h=`${a} × ${b}`;v=a*b}else if(t<.8){const A=ri(11,99),b=ri(2,9);f=x=>x.toFixed(1);nr=nr.map(d=>d/10);h=`${f(A/10)} × ${b}`;v=A*b/10}else{const p=rnd([10,20,25,50]),N=rnd([40,80,120,200,400]);h=`${N} の ${p}％`;v=N*p/100}}
+ const o=[f(v)];let k=0;while(o.length<3&&k++<80){const w=v+rnd(nr);if(w>=0&&!o.includes(f(w)))o.push(f(w))}while(o.length<3)o.push(f(v+o.length*7));
+ const m=mix(o,0);return{h,c:m.c,a:m.a,k:"c"}}
+function kanjiQ(g){const L=KJ[g],e=rnd(L),o=L.filter(x=>x!==e);
+ if(Math.random()<.6){const m=mix(pick3(e[1],o.map(x=>x[1])),0);return{h:`「${e[0]}」を 漢字で かくと？`,c:m.c,a:m.a,k:"k"}}
+ const m=mix(pick3(e[0],o.map(x=>x[0])),0);return{h:`「${e[1]}」の よみは？`,c:m.c,a:m.a,k:"k"}}
+function readQ(g){const e=rnd(RB[g]),m=mix([e[2],e[3],e[4]],0);return{h:`<small>${e[0]}</small>${e[1]}`,c:m.c,a:m.a,k:"r"}}
+function mq(type,g,n,used){for(let i=0;i<12;i++){const t=type==="m"?rnd(["c","c","k","r"]):type;const q=t==="c"?mathQ(g,n):t==="k"?kanjiQ(g):readQ(g);if(!used||!used.has(q.h)){used&&used.add(q.h);return q}}
+ return mathQ(g,n)}
+/* ===== stages / enemies ===== */
+const isBoss=n=>n%6===0,STT={c:"けいさん",k:"漢字",r:"どっかい",m:"ミックス"};
+const stType=n=>isBoss(n)?"m":["c","k","r","c","m"][(n-1)%6];
+const stIcon=n=>isBoss(n)?"👑":{c:"🔢",k:"字",r:"📖",m:"🌀"}[stType(n)];
+const ENEMY=["wani","igura","erima","yamo","komo","tsuno","koburan","kame","fukuro","kujaku","oumu","saicho","hapa","raiko","ruri","homura"];
+const BN=["ヤミリュウ","ホムラリュウ","ゴクアクリュウ","ゲンマリュウ","テンマリュウ","シンマリュウ"];
+function enemy(n){const hp=(4+n)*(isBoss(n)?2:1);
+ if(isBoss(n)){const i=n/6,pal=i>=3?"b3":i===2?"b2":"b1";return{boss:1,i,hp,sp:["ruri","homura","raiko","wani","oumu","komo"][(i-1)%6],pal,st:i===1?2:3,glow:i>=3?" glow3":i===2?" glow2":"",sc:Math.min(1.35,1+.06*(i-1)),nm:BN[(i-1)%6]+"　ボスLv"+i,pw:8}}
+ const sp=ENEMY[(n-Math.floor(n/6)-1)%ENEMY.length];return{boss:0,hp,sp,pal:null,st:n<8?1:n<20?2:3,glow:"",sc:1,nm:SPC.find(x=>x[0]===sp)[1],pw:0}}
+const tName=(sp,s)=>(NMS[sp]||[SPC.find(x=>x[0]===sp)[1],SPC.find(x=>x[0]===sp)[1]+"・しんか",SPC.find(x=>x[0]===sp)[1]+"・オウ"])[s-1];
+const NMS={ruri:["ルリオ","ルリドラ","ルリオウ"]};
+const lvOf=d=>1+Math.floor(d.exp/100),stOf=l=>l>=20?3:l>=10?2:1,cur=()=>G.dragons[G.act]||{sp:G.starter,exp:0};
+const rew=(n,first)=>{const b=isBoss(n)?3:1,k=first?1:.4;return{c:Math.round((30+10*n)*b*k),p:Math.round((5+n)*b*k),x:Math.round((15+3*n)*b)}};
+function hy(s,id,pal){const p=BP[pal]||SPD[id];["c","d","b","w","h","e"].forEach((k,i)=>p[i]?s.style.setProperty("--"+k,p[i]):s.style.removeProperty("--"+k));s.dataset.sp=id;s.innerHTML=`<use href="#sp-${id}"/>`}
+function boom(big){try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();const A=ac,t=A.currentTime+.25,dur=big?1.8:.8,n=Math.floor(A.sampleRate*dur),b=A.createBuffer(1,n,A.sampleRate),d=b.getChannelData(0);
+ for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,big?1.6:2.2);
+ const s=A.createBufferSource();s.buffer=b;const f=A.createBiquadFilter();f.type="lowpass";f.frequency.setValueAtTime(big?3500:2000,t);f.frequency.exponentialRampToValueAtTime(60,t+dur*.85);
+ const m=A.createGain();m.gain.value=big?1:.3;const c=A.createDynamicsCompressor();
+ const o=A.createOscillator(),g=A.createGain();o.frequency.setValueAtTime(big?150:110,t);o.frequency.exponentialRampToValueAtTime(30,t+(big?1.2:.5));g.gain.setValueAtTime(big?1.6:.5,t);g.gain.exponentialRampToValueAtTime(.001,t+(big?1.3:.6));
+ s.connect(f);f.connect(m);o.connect(g);g.connect(m);m.connect(c);c.connect(A.destination);s.start(t);o.start(t);o.stop(t+1.4)}catch(e){}}
+/* ===== missions ===== */
+const MS=[{id:"q",t:"もんだいに 10もん せいかい",n:10,c:50,s:0},{id:"k",t:"漢字を 5もん せいかい",n:5,c:40,s:5},{id:"clr",t:"ステージを 2かい クリア",n:2,c:60,s:10},{id:"perfect",t:"ノーミスで クリア",n:1,c:40,s:15},{id:"feed",t:"ドラゴンに エサを あげる",n:1,c:20,s:0}];
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()};
+function miEnsure(){if(!G.mi||G.mi.d!==today())G.mi={d:today(),p:{},c:{}}}
+function mp(id,k){miEnsure();G.mi.p[id]=(G.mi.p[id]||0)+(k||1);save();renderMi()}
+function renderMi(){miEnsure();$("#mis").innerHTML=MS.map(m=>{const p=Math.min(m.n,G.mi.p[m.id]||0),ok=p>=m.n,cl=G.mi.c[m.id];
+ return `<div class="mi"><div class="mt">${m.t}<div class="bar"><i style="width:${p/m.n*100}%;background:var(--grn)"></i></div><small>${p}/${m.n}</small></div>${cl?'<b style="opacity:.5">うけとった</b>':`<button data-m="${m.id}" ${ok?"":"disabled"}>${m.s?"⭐"+m.s+" ":""}🪙${m.c}</button>`}</div>`}).join("")}
+$("#mis").onclick=e=>{const b=e.target.closest("button[data-m]");if(!b||b.disabled)return;miEnsure();const m=MS.find(x=>x.id===b.dataset.m);if((G.mi.p[m.id]||0)<m.n||G.mi.c[m.id])return;G.mi.c[m.id]=1;G.coin+=m.c;G.star+=m.s;save();pills();renderMi()};
+/* ===== stage select ===== */
+let VW=0;
+function renderStages(){const sel=Math.min(G.sel||G.stage,G.stage),w=VW,base=w*6;
+ $("#sh2").textContent=`${G.grade}年生　ワールド${w+1}`;$("#wp").disabled=w<=0;$("#wn").disabled=(w+1)*6>=G.stage+6-1&&base+6>G.stage;
+ $("#wn").disabled=base+6>G.stage;
+ $("#pth").innerHTML=[1,2,3,4,5,6].map(i=>{const n=base+i,cls=n<G.stage?"done":n===G.stage?"now":"lk",em=n<G.stage?`${n} ${"⭐".repeat(G.stars[n]||1)}`:n===G.stage?"いまここ":n;
+  return `<div class="node ${cls}${n===sel?" cur":""}" data-n="${n}">${n>G.stage?"🔒":stIcon(n)}<em>${em}</em></div>`}).join("");
+ const n=sel,E=enemy(n),lk=n>G.stage,first=n===G.stage,r=rew(n,first);
+ $("#stc").style.background=E.boss?"linear-gradient(135deg,#2b1f4d,#6a2330)":"linear-gradient(135deg,#2c3a5a,#3a2a4a)";
+ $("#stc").innerHTML=`<svg class="dg st${E.st}${E.glow}${lk?" lock":""}" id="scsv"></svg><div><b>ステージ${n}${E.boss?" ボスせん":""}</b><br>${lk?"？？？":E.nm}<br><small>もんだい：${STT[stType(n)]}</small><br>${first?"はじめての クリア":"もういちど（ごほうび 4わり）"}<br>⭐${r.p} 🪙${r.c}${!E.boss&&first&&!G.dragons.some(d=>d.sp===E.sp)?"　🐲 なかまに なるかも！":""}<br><button id="gob2" style="margin-top:8px;background:var(--red)">⚔️ たたかう</button></div>`;
+ hy($("#scsv"),E.sp,lk?null:E.pal);
+ $("#gob2").onclick=()=>{G.sel=n;save();startB(n)}}
+$("#pth").onclick=e=>{const nd=e.target.closest(".node");if(!nd)return;const n=+nd.dataset.n;if(n>G.stage)return;G.sel=n;save();renderStages()};
+$("#wp").onclick=()=>{VW=Math.max(0,VW-1);G.sel=VW*6+1;renderStages()};
+$("#wn").onclick=()=>{if((VW+1)*6<G.stage){VW++;G.sel=Math.min(G.stage,VW*6+1);renderStages()}};
+/* ===== battle ===== */
+function setHp(){$("#fhp").style.width=Math.max(0,B.fhp/B.fmax*100)+"%";$("#mhp").style.width=Math.max(0,B.mhp/B.mmax*100)+"%"}
+function startB(n){if(!G.started){show(0);return}n=Math.min(n||G.sel||G.stage,G.stage);G.sel=n;
+ const E=enemy(n),d=cur(),l=lvOf(d),s=stOf(l),mmax=100+5*(l-1);
+ B={n,E,fhp:E.hp,fmax:E.hp,mhp:mmax,mmax,busy:0,done:0,dmg:1+Math.floor(l/3),pow:Math.max(6,Math.round(14+n*1.2+E.pw-l*.6)),miss:0,ok:0,used:new Set()};
+ hy($("#fsv"),E.sp,E.pal);$("#fsv").setAttribute("class","dg st"+E.st+E.glow);$("#bzf").style.width=E.sc>1?`calc(clamp(170px,24vw,320px)*${E.sc})`:"";$("#bzf").style.right=E.sc>1?"7%":"";
+ $("#fn").textContent=E.nm+(E.boss?"":"　ステージ"+n);$("#bzf").classList.remove("dead");
+ hy($("#msv"),d.sp);$("#msv").setAttribute("class","dg st"+s);$("#mn").textContent=tName(d.sp,s)+" Lv"+l;
+ setHp();$("#res").hidden=true;$("#qp").hidden=false;$("#bf").classList.add("on");$("#bstart").hidden=true;bOn=true;show(3);nextQ()}
+function nextQ(){B.q=mq(stType(B.n),G.grade,B.n,B.used);$("#qb").innerHTML=B.q.h;$("#cb").innerHTML=B.q.c.map((t,i)=>`<button data-i="${i}">${t}</button>`).join("");B.busy=0}
+$("#cb").onclick=e=>{const b=e.target.closest("button");if(!b||!B||B.busy||B.done)return;B.busy=1;+b.dataset.i===B.q.a?hit():miss()};
+function fx(last){const sc=$("#bscene");[[$("#flm"),"go"],[$("#bmz"),last?"big":"go"],[$("#bzf"),"hit"]].forEach(([e,c])=>{e.classList.remove("go","big","hit");void e.getBoundingClientRect();e.classList.add(c)});
+ if(last){sc.classList.remove("shake");void sc.getBoundingClientRect();sc.classList.add("shake")}boom(last)}
+function hit(){B.ok++;mp("q");if(B.q.k==="k")mp("k");B.fhp-=B.dmg;const last=B.fhp<=0;fx(last);setHp();if(last){B.done=1;$("#bzf").classList.add("dead");setTimeout(win,1500)}else setTimeout(nextQ,900)}
+function miss(){B.miss++;B.mhp-=B.pow;const m=$("#bzm");m.classList.remove("hit");void m.getBoundingClientRect();m.classList.add("hit");setHp();if(B.mhp<=0){B.done=1;setTimeout(lose,700)}else setTimeout(nextQ,700)}
+function fin(h){$("#qp").hidden=true;$("#res").innerHTML=h;$("#res").hidden=false}
+function win(){const n=B.n,E=B.E,first=n===G.stage,r=rew(n,first),d=cur(),sb=stOf(lvOf(d)),pc=B.mhp/B.mmax,stars=pc>=.7?3:pc>=.4?2:1;
+ let extra="",bonus=0;G.coin+=r.c;G.star+=r.p;G.stars[n]=Math.max(G.stars[n]||0,stars);d.exp+=r.x;
+ if(!E.boss&&first){if(G.dragons.some(x=>x.sp===E.sp)){bonus=20;G.coin+=bonus;extra=`<p>🪙 +${bonus}（${E.nm}の ほうしゅう）</p>`}else{G.dragons.push({sp:E.sp,exp:0});extra=`<p>🐲 <b>${E.nm}</b>が なかまに なった！</p>`}}
+ const sa=stOf(lvOf(d));if(sa>sb)extra+=`<p>✨ ${tName(d.sp,sb)}が <b>${tName(d.sp,sa)}</b>に しんかした！</p>`;
+ let nt=null;if(first){G.stage++;G.sel=G.stage;VW=Math.floor((G.stage-1)/6);nt=trainUp()}
+ mp("clr");if(!B.miss)mp("perfect");save();pills();care();renderStages();
+ fin(`<b style="font-size:26px">かった！ ${"⭐".repeat(stars)}</b><p>ポイント⭐ +${r.p}　🪙 +${r.c}　けいけんち +${r.x}</p>${extra}${nt?`<p>🚄 ${nt}が はしりはじめた！</p>`:""}<button data-a="next">つぎのステージへ</button><button data-a="sel" style="background:var(--org)">ステージえらび</button><button data-a="map" style="background:var(--pur)">ちずを見る</button>`)}
+function lose(){fin(`<b style="font-size:26px">まけちゃった…</b><p>エサで ドラゴンを きたえて もういちど！</p><button data-a="again">もういちど</button><button data-a="sel" style="background:var(--org)">ステージえらび</button><button data-a="map" style="background:var(--pur)">ちずを見る</button>`)}
+$("#res").onclick=e=>{const b=e.target.closest("button");if(!b||!B)return;const a=b.dataset.a,n=B.n;if(a==="map"){endB();show(1)}else if(a==="sel"){endB();show(2)}else startB(a==="next"?G.stage:n)};
+function endB(){bOn=false;B=null;$("#bf").classList.remove("on");$("#bzf").style.width="";$("#bzf").style.right="";bsInfo();$("#bstart").hidden=false}
+function bsInfo(){const n=Math.min(G.sel||G.stage,G.stage),E=enemy(n),r=rew(n,n===G.stage);
+ $("#bst").textContent=E.boss?"⚔️ ボスせん":"⚔️ ステージ"+n;
+ $("#bsi").innerHTML=`ステージ${n}　もんだい：${STT[stType(n)]}<br>ごほうび ⭐${r.p} 🪙${r.c}${n===G.stage?"<br>🚄 はじめての クリアで あたらしい れっしゃが 1本ふえるよ！":""}`;
+ hy($("#bsd"),E.sp,E.pal);$("#bsd").setAttribute("class","dg st"+E.st+E.glow)}
+/* ===== status / care ===== */
+function pills(){$("#stv").textContent=G.star;$("#cnv").textContent=G.coin.toLocaleString()}
+function care(){const d=cur(),l=lvOf(d),s=stOf(l),nm=tName(d.sp,s);
+ $("#nm").textContent=nm;$("#lvt").textContent=`Lv${l}　しんか ${s}/3`;
+ $("#nx").textContent=s<3?`Lv${s===1?10:20}で しんか！ あと${(s===1?10:20)-l}`:"さいごの すがた！";
+ $("#xpb").style.width=d.exp%100+"%";$("#xpt").textContent=d.exp%100+"%";
+ const pw=(1+Math.floor(l/3))*10,hp=100+5*(l-1);$("#pwb").style.width=Math.min(100,pw)+"%";$("#pwt").textContent=pw;$("#hpb").style.width=Math.min(100,hp/2.5)+"%";$("#hpt").textContent=hp;
+ const big=$("#big");hy(big,d.sp);big.setAttribute("class","dg st"+s);
+ $(".evo").innerHTML=[1,2,3].map(i=>`<div class="ev${i===s?" now":""}">${i>s?'<div class="qm">？</div>':`<svg class="dg st${i}"></svg>`}${i>s?"？？？":tName(d.sp,i)}<small>${["Lv1〜9","Lv10〜19","Lv20〜"][i-1]}</small></div>`).join("<span>▶</span>");
+ document.querySelectorAll(".evo svg").forEach(x=>hy(x,d.sp));
+ $(".herd").innerHTML=G.dragons.map((x,i)=>{const L=lvOf(x),S=stOf(L);return `<div class="pick${i===G.act?" sel":""}" data-i="${i}"><svg class="dg st${S}"></svg>${tName(x.sp,S)} Lv${L}</div>`}).join("");
+ document.querySelectorAll(".herd .pick svg").forEach((x,i)=>hy(x,G.dragons[i].sp));
+ const own=new Set(G.dragons.map(x=>x.sp));
+ $("#zk").innerHTML=["はちゅうるい","とり"].map(c=>`<h2>${c}がたのドラゴン</h2><div class="zk">${SPC.filter(s=>s[2]===c).map(s=>`<div class="pick"><svg class="dg st1${own.has(s[0])?"":" lock"}" data-sp="${s[0]}"></svg>${own.has(s[0])?s[1]:"？？？"}</div>`).join("")}</div>`).join("");
+ document.querySelectorAll("#zk svg").forEach(x=>hy(x,x.dataset.sp));
+ $("#zh").textContent=`ドラゴンずかん（${own.size}/${SPC.length}しゅるい・しんかは ひみつ！）`}
+/* ===== init ===== */
+$(".feed").insertAdjacentHTML("afterend",'<p id="fmsg" style="min-height:22px;font-weight:700;margin:8px 0 0"></p>');
+$(".feed").onclick=e=>{const b=e.target.closest("button");if(!b)return;const [c,x]=b.dataset.f.split(":").map(Number);
+ if(G.coin<c){b.textContent="たりない！";setTimeout(()=>b.textContent="🪙 "+c,1200);return}
+ const d=cur(),sb=stOf(lvOf(d));G.coin-=c;d.exp+=x;const sa=stOf(lvOf(d));mp("feed");save();pills();care();
+ $("#fmsg").textContent=sa>sb?`✨ ${tName(d.sp,sb)}が ${tName(d.sp,sa)}に しんかした！`:`${tName(d.sp,sa)}は つよくなった！ EXP +${x}`};
+$(".herd").onclick=e=>{const p=e.target.closest(".pick");if(!p)return;G.act=+p.dataset.i;save();care()};
+function gm(){document.querySelectorAll("[data-g]").forEach(b=>b.classList.toggle("sel",+b.dataset.g===G.grade))}
+document.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{G.grade=+b.dataset.g;save();gm();renderStages()});
+function mark(){document.querySelectorAll("[data-pick]").forEach(p=>p.classList.toggle("sel",p.dataset.pick===G.starter));
+ const lk=!!G.started;document.querySelectorAll("#s0 .picks").forEach(x=>{x.style.pointerEvents=lk?"none":"";x.style.opacity=lk?.45:1});
+ $("#go0").textContent=lk?"つづきから あそぶ":"ぼうけんスタート"}
+document.querySelectorAll("[data-pick]").forEach(p=>p.onclick=()=>{if(G.started)return;G.starter=p.dataset.pick;save();mark()});
+function startGame(){if(!G.started){G.started=1;G.coin=100;G.star=30;G.stage=1;G.sel=1;G.stars={};G.dragons=[{sp:G.starter,exp:0}];G.act=0;G.mi=null;VW=0}
+ save();pills();mark();care();renderStages();renderMi();bsInfo();show(1)}
+let rstA=false;$("#rst").onclick=e=>{if(!rstA){rstA=true;e.target.textContent="もういちど おすと ぜんぶ きえるよ";setTimeout(()=>{rstA=false;e.target.textContent="さいしょから やりなおす"},3000);return}
+ try{localStorage.removeItem(KEY)}catch(x){}location.reload()};
+$("#go0").onclick=startGame;$("#gob").onclick=()=>{G.started?(G.sel=G.sel||G.stage,bsInfo(),show(3)):show(0)};$("#bgo").onclick=()=>startB(G.sel||G.stage);$("#bsel").onclick=()=>show(2);
+window.addEventListener("resize",fit);
+if(!G.dragons)G.dragons=[];if(!G.stars)G.stars={};if(!G.sel)G.sel=G.stage;G.sel=Math.min(G.sel,G.stage);VW=Math.floor((G.sel-1)/6);
+pills();gm();mark();care();renderStages();renderMi();bsInfo();show(G.started?([1,2,3,4].includes(G.tab)?(G.tab===3?1:G.tab):1):0);
+</script>
+</body>
+</html>
